@@ -7,6 +7,7 @@ import { glowTexture } from '../render/textures';
 import { getGltf, getLods } from './AssetLoader';
 import { createFalconSpriteModel } from './falconSprite';
 import { createShadowCommanderSprite } from './shadowCommanderSprite';
+import { createScoutDroneSprite } from './scoutDroneSprite';
 
 const ENGINE = /^(engine|nozzle)/i;
 const TURRET = /^turret/i;
@@ -96,6 +97,7 @@ export function createAircraftModel(def: AircraftDef, opts: { glow?: boolean } =
 /** Enemy / boss: GLB if available (materials cloned per instance for hit flashes), else procedural. */
 export function createEnemyModel(def: EnemyDef): EnemyModel {
   if (def.behavior === 'boss') return createShadowCommanderSprite();
+  if (def.id === 'scoutDrone') return createScoutDroneSprite();
   const id = def.behavior === 'boss' ? 'boss.mothership' : `enemy.${def.id}`;
   const inst = instantiate(id);
   if (!inst) return buildEnemy(def.model, def.color);
