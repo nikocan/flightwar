@@ -17,11 +17,13 @@ export function createShadowCommanderSprite(): EnemyModel {
   const sprite = new THREE.Mesh(geometry, material);
   sprite.renderOrder = 4;
   group.add(sprite);
+  let elapsed = 0;
   return {
     group, flashMats: [], baseEmissive: [], spinners: [], pulse: [],
     update: (dt: number) => {
       // Subtle boss hover, without changing collision or attack state.
-      sprite.position.y = Math.sin(performance.now() * 0.0018) * 0.12;
+      elapsed += dt;
+      sprite.position.y = Math.sin(elapsed * 1.8) * 0.12;
     },
     dispose: () => { geometry.dispose(); material.dispose(); texture.dispose(); },
   };
