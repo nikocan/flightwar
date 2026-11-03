@@ -1,0 +1,23 @@
+# Netlify build for the Sky Force Evolution web client (npm workspaces monorepo).
+[build]
+  command = "npm run build"
+  publish = "apps/client/dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Long-lived caching for hashed bundles and static game assets.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/decoders/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/*.wasm"
+  [headers.values]
+    Content-Type = "application/wasm"
