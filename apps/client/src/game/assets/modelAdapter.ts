@@ -5,6 +5,9 @@ import { buildAircraft, type AircraftModel } from '../render/aircraftModel';
 import { buildEnemy, type EnemyModel, type FlashMaterial } from '../render/enemyModels';
 import { glowTexture } from '../render/textures';
 import { getGltf, getLods } from './AssetLoader';
+import { createFalconSpriteModel } from './falconSprite';
+import { createShadowCommanderSprite } from './shadowCommanderSprite';
+import { createScoutDroneSprite } from './scoutDroneSprite';
 
 const ENGINE = /^(engine|nozzle)/i;
 const TURRET = /^turret/i;
@@ -51,6 +54,8 @@ function addExhaust(node: THREE.Object3D, color: string, radius: number, flames:
 
 /** Player / hangar aircraft: GLB if available, otherwise the procedural placeholder. */
 export function createAircraftModel(def: AircraftDef, opts: { glow?: boolean } = {}): AircraftModel {
+  // Falcon X1 uses authored 2.5D artwork instead of the geometric prototype.
+  if (def.id === 'falconX1') return createFalconSpriteModel();
   const inst = instantiate(`aircraft.${def.id}`);
   if (!inst) return buildAircraft(def.model, opts);
   const group = new THREE.Group();
@@ -91,7 +96,9 @@ export function createAircraftModel(def: AircraftDef, opts: { glow?: boolean } =
 
 /** Enemy / boss: GLB if available (materials cloned per instance for hit flashes), else procedural. */
 export function createEnemyModel(def: EnemyDef): EnemyModel {
-  const id = def.behavior === 'boss' ? 'boss.mothership' : `enemy.${def.id}`;
+  if (def.behavior === 'boss') return createShadowCommanderSprite();
+  if (def.id === 'scoutDrone') return createScoutDroneSprite();
+  const id = `enemy.${def.id}`;
   const inst = instantiate(id);
   if (!inst) return buildEnemy(def.model, def.color);
   const group = new THREE.Group();
