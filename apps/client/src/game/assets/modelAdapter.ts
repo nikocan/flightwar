@@ -98,7 +98,7 @@ export function createAircraftModel(def: AircraftDef, opts: { glow?: boolean } =
 export function createEnemyModel(def: EnemyDef): EnemyModel {
   if (def.behavior === 'boss') return createShadowCommanderSprite();
   if (def.id === 'scoutDrone') return createScoutDroneSprite();
-  const id = def.behavior === 'boss' ? 'boss.mothership' : `enemy.${def.id}`;
+  const id = `enemy.${def.id}`;
   const inst = instantiate(id);
   if (!inst) return buildEnemy(def.model, def.color);
   const group = new THREE.Group();
