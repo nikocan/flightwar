@@ -12,6 +12,22 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.3.0',
+    date: '2026-11-03',
+    phase: 2,
+    title: 'Yeni Çizgi Film Görünümü — Şelale Kanyonu',
+    highlights: [
+      'Oyunun görsel tarzı parlak, renkli çizgi film stiline geçti (yeni renk paleti: gök mavisi, nane yeşili, pastel pembe, sıcak sarı).',
+      'Yeni Falcon X1: yuvarlak gövde, kocaman kırmızı burun, sarı çerçeveli parlak kokpit, sarı hava girişleri, kırmızı kanat uçları, 3 mavi motor ve çizgi film dış hatları.',
+      'Yeni boss: Gölge Komutanı — mor zırhlı dev gemi, geniş mor kanatlar, turuncu-kırmızı parlayan reaktör, dönen taretler.',
+      'Yeni düşmanlar: turuncu keşif dronu, mor savaşçı (pembe silahlar), füze rampalı ağır bombardıman, enerji kalkanlı drone.',
+      'Yeni bölüm ortamı "Şelale Kanyonu": geniş turkuaz nehir ve akan köpükler, kumtaşı kayalıklar, yeşil düzlükler, pembe çiçekli ağaçlar, akan şelaleler, bayraklı kuleler ve taş köprü.',
+      'Yeni oyun içi göstergeler: 3 kalp, enerji ve kalkan çubukları, kafatası rozetli "BOSS – Gölge Komutanı" çubuğu, parlak altın/kristal hapları, yuvarlak silah yuvaları, yeşil can çubuğu.',
+      'Dokunmatik butonlar yeni renkli ve parlak tasarımda (ateş, füze, özel, atılma, kilit).',
+      'Bölüm isimleri güncellendi: Gök Akademisi, Yeşil Adalar, Şelale Kanyonu, Okyanus Macerası, Karlı Dağlar, Gün Batımı Şehri, Volkan Dünyası, Bulut Krallığı, Uzay Macerası, Galaktik Final.',
+    ],
+  },
+  {
     version: '0.2.0',
     date: '2026-11-03',
     phase: 2,
@@ -64,7 +80,7 @@ export interface RoadmapItem {
 
 export const ROADMAP: RoadmapItem[] = [
   { phase: 1, title: 'Oynanabilir çekirdek: uçuş, ateş, düşmanlar, ilk görev', status: 'done' },
-  { phase: 2, title: 'Görsel kalite: model altyapısı ve bloom hazır — detaylı 3D modeller bekleniyor', status: 'next' },
+  { phase: 2, title: 'Çizgi film görünümü: Falcon X1, Gölge Komutanı, Şelale Kanyonu, yeni HUD', status: 'next' },
   { phase: 3, title: 'Kampanya: 10 bölüm × 10 görev, bosslar, günlük görevler', status: 'planned' },
   { phase: 4, title: '3D hangar, 8 uçak, 10 silah, geliştirme sistemi', status: 'planned' },
   { phase: 5, title: 'Çok oyunculu: 1v1 düello, ortak görevler, özel odalar', status: 'planned' },

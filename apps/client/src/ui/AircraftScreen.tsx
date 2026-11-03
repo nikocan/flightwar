@@ -32,9 +32,9 @@ function Preview({ def }: { def: AircraftDef }) {
   });
   return (
     <>
-      <hemisphereLight args={['#cfe9ff', '#1a2040', 1.2]} />
-      <directionalLight position={[5, 8, 6]} intensity={2.4} />
-      <directionalLight position={[-6, 2, -6]} intensity={1.2} color="#9b5cff" />
+      <hemisphereLight args={['#d6efff', '#6a7fb0', 1.1]} />
+      <directionalLight position={[5, 8, 6]} intensity={1.5} />
+      <directionalLight position={[-6, 2, -6]} intensity={0.5} color="#b49cff" />
       <mesh position={[0, -2.2, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[3.2, 3.5, 64]} />
         <meshBasicMaterial color="#2fb8ff" transparent opacity={0.6} toneMapped={false} side={THREE.DoubleSide} />
@@ -78,7 +78,7 @@ export function AircraftScreen() {
           </div>
           <div className="panel holo-edge aircraft-view">
             <div className="aircraft-canvas">
-              <Canvas dpr={[1, 2]} camera={{ position: [0, 3.2, 10], fov: 40 }}>
+              <Canvas dpr={[1, 2]} camera={{ position: [0, 3.2, 10], fov: 40 }} onCreated={({ gl }) => { gl.toneMapping = THREE.NeutralToneMapping; }}>
                 <Preview def={def} />
               </Canvas>
             </div>

@@ -49,7 +49,7 @@ export function GameView({ missionId, runId }: { missionId: string; runId: numbe
           </Suspense>
         </Canvas>
       </div>
-      {!ended && <Hud objective={t(mission.objectiveKey)} />}
+      {!ended && <Hud objective={t(mission.objectiveKey)} missionName={`${t('missions.chapter', { n: mission.chapter })} – ${t(mission.nameKey)}`} />}
       {!ended && !paused && isTouchDevice() && <TouchControls />}
       {paused && !ended && <PauseMenu />}
       {ended && <ResultScreen />}

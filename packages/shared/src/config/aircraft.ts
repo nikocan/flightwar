@@ -94,7 +94,7 @@ export const AIRCRAFT: Record<AircraftId, AircraftDef> = {
     id: 'falconX1', name: 'Falcon X1', class: 'starter',
     stats: { health: 140, armor: 10, speed: 100, agility: 100, firepower: 100, critChance: 0.08, critDamage: 1.8, energy: 100, specialCooldown: 14 },
     primaryWeapon: 'machineGun', special: 'rapidFire', unlock: { type: 'default', value: 0 },
-    model: { shape: 'falcon', primary: '#e6edf7', secondary: '#1f4fd1', accent: '#ff3048', engine: '#4fc3ff', scale: 1 },
+    model: { shape: 'falcon', primary: '#ffffff', secondary: '#2f7bea', accent: '#f2434f', engine: '#5fd8ff', scale: 1 },
     availableInPhase: 1,
   },
   thunderMk2: {

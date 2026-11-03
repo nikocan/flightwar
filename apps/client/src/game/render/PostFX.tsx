@@ -12,9 +12,9 @@ import { QUALITY_PROFILES, useSettings } from '../../state/settings';
 const GradeShader = {
   uniforms: {
     tDiffuse: { value: null },
-    uSaturation: { value: 1.12 },
-    uContrast: { value: 1.06 },
-    uVignette: { value: 0.32 },
+    uSaturation: { value: 1.08 },
+    uContrast: { value: 1.03 },
+    uVignette: { value: 0.12 },
   },
   vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
   fragmentShader: `
@@ -25,7 +25,7 @@ const GradeShader = {
       float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722));
       c.rgb = mix(vec3(l), c.rgb, uSaturation);
       c.rgb = (c.rgb - 0.18) * uContrast + 0.18;
-      c.rgb *= mix(vec3(0.94, 0.97, 1.06), vec3(1.05, 1.0, 0.94), smoothstep(0.05, 0.8, l));
+      c.rgb *= mix(vec3(0.97, 0.99, 1.04), vec3(1.02, 1.0, 0.98), smoothstep(0.05, 0.8, l));
       vec2 d = vUv - 0.5;
       c.rgb *= 1.0 - uVignette * smoothstep(0.25, 0.85, dot(d, d) * 2.2);
       gl_FragColor = vec4(max(c.rgb, 0.0), c.a);
@@ -47,7 +47,7 @@ export function PostFX() {
     const target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: q.antialias ? 4 : 0 });
     const c = new EffectComposer(gl, target);
     c.addPass(new RenderPass(scene, camera));
-    const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), q.bloomStrength, 0.4, 0.98);
+    const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), q.bloomStrength, 0.4, 1.2);
     c.addPass(bloom);
     c.addPass(new ShaderPass(GradeShader));
     c.addPass(new OutputPass());
@@ -55,8 +55,9 @@ export function PostFX() {
   }, [gl, scene, camera, q.bloom, q.bloomStrength, q.antialias]);
 
   useEffect(() => {
-    gl.toneMapping = THREE.ACESFilmicToneMapping;
-    gl.toneMappingExposure = 1.05;
+    // Neutral tone mapping keeps the bright cartoon palette saturated (ACES desaturates/shifts hues).
+    gl.toneMapping = THREE.NeutralToneMapping;
+    gl.toneMappingExposure = 0.92;
   }, [gl]);
 
   useEffect(() => {

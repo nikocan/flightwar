@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { QualityProfile } from '../../state/settings';
 import { cloudTexture, glowTexture } from './textures';
+import { CartoonProps } from './CartoonProps';
 
 /** Visual theme for a chapter — Phase 3 will add one per chapter. */
 export interface EnvironmentTheme {
@@ -19,16 +20,33 @@ export interface EnvironmentTheme {
   snow: string;
   hemiSky: string;
   hemiGround: string;
+  /** Cartoon look: terraced cliffs, cel-shaded light, foam river, decorative props. */
+  toon?: boolean;
+  cliff?: string;
+  cliffDark?: string;
+  foam?: string;
 }
 
+/** Bright cartoon "Waterfall Canyon" — the primary art direction. */
+const WATERFALL_CANYON: EnvironmentTheme = {
+  zenith: '#3aa8f5', horizon: '#c9ecff', fog: '#bfe6ff', sun: '#fff4d6', sunDir: [0.4, 0.75, 0.35],
+  fogNear: 170, fogFar: 700,
+  water: '#18a6d8', waterShallow: '#5fe0e6', sand: '#f3dca2', grass: '#72dda5', rock: '#d9a77a', snow: '#ffffff',
+  hemiSky: '#d8f1ff', hemiGround: '#8fd3a8',
+  toon: true, cliff: '#d9a77a', cliffDark: '#a8714f', foam: '#ffffff',
+};
+
 export const THEMES: Record<string, EnvironmentTheme> = {
+  waterfallCanyon: WATERFALL_CANYON,
   menuDusk: {
     zenith: '#101a52', horizon: '#f09aa8', fog: '#7f78b8', sun: '#ffb070', sunDir: [0.15, 0.1, -1],
     fogNear: 90, fogFar: 520,
     water: '#123a7a', waterShallow: '#3f8fd0', sand: '#b9a07a', grass: '#3d7a3c', rock: '#5f5a6e', snow: '#e8e4ff',
     hemiSky: '#a9b8ff', hemiGround: '#2a3326',
   },
-  skyAcademy: {
+  // Chapter 1 now uses the cartoon canyon (the original realistic theme is kept as 'skyAcademyClassic').
+  skyAcademy: WATERFALL_CANYON,
+  skyAcademyClassic: {
     zenith: '#1f5fc4', horizon: '#cfe9ff', fog: '#c4e0f7', sun: '#fff1c9', sunDir: [0.35, 0.42, -1],
     fogNear: 140, fogFar: 640,
     water: '#0d4f8a', waterShallow: '#2aa7c9', sand: '#d9c58f', grass: '#4f9a45', rock: '#7d7a77', snow: '#f4f8ff',
@@ -54,6 +72,18 @@ float fbm(vec2 p) {
   for (int i = 0; i < 5; i++) { v += a * noise(p); p = p * 2.03 + vec2(17.1, 9.2); a *= 0.5; }
   return v;
 }
+#ifdef TOON
+float terrainHeight(vec2 p) {
+  // Cartoon mesas: flat grassy tops, steep rounded cliffs, river in the middle.
+  float canyon = smoothstep(30.0, 46.0, abs(p.x)) + smoothstep(90.0, 200.0, abs(p.x)) * 0.9;
+  float h = canyon * (20.0 + fbm(p * 0.01) * 26.0);
+  float stepH = 13.0;
+  float k = h / stepH;
+  h = (floor(k) + smoothstep(0.3, 0.7, fract(k))) * stepH;
+  h += fbm(p * 0.07) * 2.2 * min(canyon, 1.0);
+  return h - 5.0;
+}
+#else
 float terrainHeight(vec2 p) {
   float canyon = smoothstep(16.0, 120.0, abs(p.x));
   float ridges = 1.0 - abs(noise(p * 0.02) * 2.0 - 1.0);
@@ -61,6 +91,7 @@ float terrainHeight(vec2 p) {
   h += canyon * canyon * 36.0;
   return h - 7.0;
 }
+#endif
 `;
 
 /**
@@ -78,10 +109,15 @@ export class Environment {
   private streakData: { x: number; y: number; z: number }[] = [];
   private readonly dummy = new THREE.Object3D();
   private scroll = 0;
+  /** Distance the world has scrolled (terrain coordinate offset). */
+  get scrollOffset(): number {
+    return this.scroll;
+  }
   private disposables: { dispose: () => void }[] = [];
   private sky!: THREE.Mesh;
   private envTarget: THREE.WebGLRenderTarget | null = null;
   private scene: THREE.Scene;
+  private props: CartoonProps | null = null;
 
   constructor(scene: THREE.Scene, quality: QualityProfile, theme: EnvironmentTheme = THEMES.skyAcademy) {
     this.scene = scene;
@@ -91,10 +127,11 @@ export class Environment {
     const sunDir = new THREE.Vector3(...theme.sunDir).normalize();
 
     // Lights
-    const hemi = new THREE.HemisphereLight(theme.hemiSky, theme.hemiGround, 1.1);
-    const sun = new THREE.DirectionalLight(theme.sun, 2.4);
+    // Cartoon lighting is softer so cel bands keep their colour instead of clipping to white.
+    const hemi = new THREE.HemisphereLight(theme.hemiSky, theme.hemiGround, theme.toon ? 0.75 : 1.1);
+    const sun = new THREE.DirectionalLight(theme.sun, theme.toon ? 1.05 : 2.4);
     sun.position.copy(sunDir).multiplyScalar(100);
-    const back = new THREE.DirectionalLight('#8fb8ff', 1.1);
+    const back = new THREE.DirectionalLight(theme.toon ? '#ffd9ef' : '#8fb8ff', theme.toon ? 0.45 : 1.1);
     back.position.set(-20, 30, 60);
     this.root.add(hemi, sun, back);
 
@@ -143,7 +180,11 @@ export class Environment {
     const terrainGeo = new THREE.PlaneGeometry(1000, 1100, seg, Math.round(seg * 1.2));
     terrainGeo.rotateX(-Math.PI / 2);
     this.terrainMat = new THREE.ShaderMaterial({
+      defines: theme.toon ? { TOON: '' } : {},
       uniforms: {
+        uCliff: { value: new THREE.Color(theme.cliff ?? theme.rock) },
+        uCliffDark: { value: new THREE.Color(theme.cliffDark ?? theme.rock) },
+        uFoam: { value: new THREE.Color(theme.foam ?? '#ffffff') },
         uScroll: { value: 0 },
         uTime: { value: 0 },
         uSunDir: { value: sunDir },
@@ -183,11 +224,43 @@ export class Environment {
       fragmentShader: /* glsl */ `
         uniform vec3 uSunDir; uniform vec3 uSunColor; uniform vec3 uFog; uniform float uFogNear; uniform float uFogFar;
         uniform vec3 uWater; uniform vec3 uWaterShallow; uniform vec3 uSand; uniform vec3 uGrass; uniform vec3 uRock; uniform vec3 uSnow; uniform vec3 uSky;
-        uniform float uTime;
+        uniform float uTime; uniform vec3 uCliff; uniform vec3 uCliffDark; uniform vec3 uFoam;
         varying float vH; varying vec3 vN; varying vec3 vWorld; varying vec2 vP;
         ${NOISE_GLSL}
         void main() {
           vec3 n = normalize(vN);
+          #ifdef TOON
+          vec3 tc;
+          float tdiff = max(dot(n, normalize(uSunDir)), 0.0);
+          if (vH < 0.0) {
+            // Turquoise river with scrolling foam streaks and soft sparkles.
+            float edge = smoothstep(-3.5, 0.0, vH);
+            tc = mix(uWater, uWaterShallow, edge);
+            float streak = noise(vec2(vP.x * 0.35, vP.y * 0.04 + uTime * 1.6));
+            float foam = smoothstep(0.86, 0.9, streak) * 0.7 + smoothstep(-0.35, -0.02, vH) * 0.9;
+            tc = mix(tc, uFoam, clamp(foam, 0.0, 1.0) * 0.75);
+            tc += pow(noise(vP * 0.9 + vec2(uTime * 1.2, -uTime)), 24.0) * 0.6;
+            tdiff = 1.0;
+          } else {
+            float slope = 1.0 - n.y;
+            float grassAmt = 1.0 - smoothstep(0.22, 0.34, slope);
+            // Layered cliff strata in warm sandstone tones.
+            float band = smoothstep(0.45, 0.55, fract(vH * 0.11 + noise(vP * 0.03) * 1.4));
+            vec3 rock = mix(uCliff, uCliffDark, band * 0.28 + noise(vP * 0.2) * 0.12);
+            vec3 grass = mix(uGrass * 0.88, uGrass * 1.08, noise(vP * 0.12));
+            tc = mix(rock, grass, grassAmt);
+            tc = mix(uSand, tc, smoothstep(0.4, 2.2, vH));
+          }
+          // Cel shading: three soft light bands.
+          float cel = tdiff < 0.25 ? 0.62 : tdiff < 0.6 ? 0.82 : 1.0;
+          vec3 tlit = tc * (uSky * 0.32 + cel * 0.78);
+          float tdist = length(vWorld - cameraPosition);
+          float tf = smoothstep(uFogNear, uFogFar, tdist);
+          gl_FragColor = vec4(mix(tlit, uFog, tf), 1.0);
+          #include <tonemapping_fragment>
+          #include <colorspace_fragment>
+          return;
+          #endif
           float detail = noise(vP * 0.35) * 0.5 + noise(vP * 1.3) * 0.5;
           vec3 col;
           if (vH < 0.0) {
@@ -251,7 +324,7 @@ export class Environment {
     const beaconMat = new THREE.MeshBasicMaterial({ color: '#00e5ff', toneMapped: false });
     const beaconGlow = new THREE.SpriteMaterial({ map: glowTexture(), color: '#00e5ff', blending: THREE.AdditiveBlending, depthWrite: false, transparent: true });
     this.disposables.push(rockGeo, topGeo, towerGeo, beaconGeo, rockMat, topMat, towerMat, beaconMat, beaconGlow);
-    const islandCount = Math.max(4, Math.round(quality.clouds / 6));
+    const islandCount = theme.toon ? 0 : Math.max(4, Math.round(quality.clouds / 6));
     for (let i = 0; i < islandCount; i++) {
       const g = new THREE.Group();
       const rock = new THREE.Mesh(rockGeo, rockMat);
@@ -283,6 +356,8 @@ export class Environment {
       this.islands.push(g);
       this.root.add(g);
     }
+
+    if (theme.toon) this.props = new CartoonProps(scene, quality);
 
     // Speed streaks
     const streakCount = Math.round(quality.particles / 25);
@@ -324,6 +399,7 @@ export class Environment {
     this.scroll += speed * dt;
     this.terrainMat.uniforms.uScroll.value = this.scroll;
     this.terrainMat.uniforms.uTime.value = time;
+    this.props?.update(dt, this.scroll, time);
 
     const d = this.dummy;
     for (let i = 0; i < this.cloudData.length; i++) {
@@ -359,9 +435,42 @@ export class Environment {
   dispose(): void {
     if (this.scene.environment === this.envTarget?.texture) this.scene.environment = null;
     this.envTarget?.dispose();
+    this.props?.dispose();
     this.root.removeFromParent();
     this.disposables.forEach((x) => x.dispose());
     this.clouds.dispose();
     this.streaks.dispose();
   }
 }
+
+// ── JavaScript port of the TOON terrain height (keeps props sitting on the shader terrain) ──
+const fract = (v: number) => v - Math.floor(v);
+function hashJS(x: number, y: number): number {
+  let a = fract(x * 0.1031), b = fract(y * 0.1031), c = fract(x * 0.1031);
+  const d = a * (b + 33.33) + b * (c + 33.33) + c * (a + 33.33);
+  a += d; b += d; c += d;
+  return fract((a + b) * c);
+}
+function noiseJS(x: number, y: number): number {
+  const ix = Math.floor(x), iy = Math.floor(y);
+  const fx = x - ix, fy = y - iy;
+  const ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy);
+  const a = hashJS(ix, iy), b = hashJS(ix + 1, iy), c = hashJS(ix, iy + 1), d = hashJS(ix + 1, iy + 1);
+  return (a + (b - a) * ux) + ((c + (d - c) * ux) - (a + (b - a) * ux)) * uy;
+}
+function fbmJS(x: number, y: number): number {
+  let v = 0, a = 0.5;
+  for (let i = 0; i < 5; i++) { v += a * noiseJS(x, y); x = x * 2.03 + 17.1; y = y * 2.03 + 9.2; a *= 0.5; }
+  return v;
+}
+const smooth = (e0: number, e1: number, x: number) => { const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0))); return t * t * (3 - 2 * t); };
+/** Terrain height (above the terrain base plane) at terrain coordinates (x, z). */
+export function toonTerrainHeight(x: number, z: number): number {
+  const canyon = smooth(30, 46, Math.abs(x)) + smooth(90, 200, Math.abs(x)) * 0.9;
+  let h = canyon * (20 + fbmJS(x * 0.01, z * 0.01) * 26);
+  const k = h / 13;
+  h = (Math.floor(k) + smooth(0.3, 0.7, fract(k))) * 13;
+  h += fbmJS(x * 0.07, z * 0.07) * 2.2 * Math.min(canyon, 1);
+  return h - 5;
+}
+export const TERRAIN_BASE_Y = -26;

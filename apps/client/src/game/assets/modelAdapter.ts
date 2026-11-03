@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { AircraftDef, EnemyDef } from '@sfe/shared';
 import { buildAircraft, type AircraftModel } from '../render/aircraftModel';
-import { buildEnemy, type EnemyModel } from '../render/enemyModels';
+import { buildEnemy, type EnemyModel, type FlashMaterial } from '../render/enemyModels';
 import { glowTexture } from '../render/textures';
 import { getGltf, getLods } from './AssetLoader';
 
@@ -98,7 +98,7 @@ export function createEnemyModel(def: EnemyDef): EnemyModel {
   group.add(inst.root);
   // Models are authored nose → -Z; enemies fly towards the player (+Z).
   inst.root.rotation.y += Math.PI;
-  const flashMats: THREE.MeshStandardMaterial[] = [];
+  const flashMats: FlashMaterial[] = [];
   const spinners: EnemyModel['spinners'] = [];
   const pulse: THREE.Object3D[] = [];
   const owned: THREE.Material[] = [];

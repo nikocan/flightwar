@@ -66,7 +66,7 @@ export const ENEMIES: Record<EnemyId, EnemyDef> = {
     score: 400, coins: 10, xp: 14, dropChance: 0.3, dodgeSkill: 0.15, engageTime: 10, model: 'shield', color: '#4dd2ff',
   },
   academyGuardian: {
-    id: 'academyGuardian', nameKey: 'enemy.academyGuardian', health: 4200, armor: 15, speed: 20, radius: 8.5, behavior: 'boss',
+    id: 'academyGuardian', nameKey: 'enemy.academyGuardian', health: 4200, armor: 15, speed: 20, radius: 10, behavior: 'boss',
     attack: { interval: 1.6, count: 3, spreadDeg: 18, speed: 30, damage: 12, aimed: true, radius: 0.8 },
     score: 5000, coins: 120, xp: 150, dropChance: 1, dodgeSkill: 0, engageTime: 0, model: 'guardian', color: '#ff3b8d',
   },
@@ -86,5 +86,5 @@ export const BOSS_RULES = {
   wallDamage: 12,
   sweepSpeed: 0.55,
   reinforcementInterval: 9,
-  holdZ: -70,
+  holdZ: -58,
 } as const;

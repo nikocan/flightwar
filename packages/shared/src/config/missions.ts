@@ -150,7 +150,7 @@ export const MISSION_1_1: MissionDef = {
       bannerKey: 'wave.boss',
       boss: true,
       maxDuration: 600,
-      groups: [{ enemy: 'academyGuardian', count: 1, formation: 'single', x: 0, y: 4, spacing: 0, delay: 2.5, interval: 0 }],
+      groups: [{ enemy: 'academyGuardian', count: 1, formation: 'single', x: 0, y: 10, spacing: 0, delay: 2.5, interval: 0 }],
     },
   ],
 };

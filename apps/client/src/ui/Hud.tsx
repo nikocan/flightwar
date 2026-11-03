@@ -4,10 +4,40 @@ import { useT } from '../i18n';
 import { useHud } from '../state/hud';
 import { useProfile } from '../state/profile';
 import { useSettings } from '../state/settings';
+import { Icon } from './art';
+import { PilotAvatar } from './art';
 import { Radar } from './Radar';
 import { isTouchDevice } from './TouchControls';
 
 const pct = (v: number, max: number) => `${Math.max(0, Math.min(100, (v / Math.max(1e-6, max)) * 100))}%`;
+const fmt = (n: number) => Math.floor(n).toLocaleString('tr-TR');
+
+/** Three hearts that empty from right to left (half-heart precision). */
+function Hearts({ ratio }: { ratio: number }) {
+  const halves = Math.ceil(Math.max(0, Math.min(1, ratio)) * 6);
+  return (
+    <div className="ch-hearts" aria-label={`%${Math.round(ratio * 100)}`}>
+      {[0, 1, 2].map((i) => {
+        const fill = Math.max(0, Math.min(2, halves - i * 2));
+        return <span key={i} className={`ch-heart ${fill === 2 ? 'full' : fill === 1 ? 'half' : 'empty'}`} />;
+      })}
+    </div>
+  );
+}
+
+/** Segmented glossy bar (energy / shield). */
+function SegBar({ ratio, kind, icon }: { ratio: number; kind: 'energy' | 'shield'; icon: string }) {
+  const segs = 6;
+  const lit = Math.round(Math.max(0, Math.min(1, ratio)) * segs);
+  return (
+    <div className={`ch-seg ${kind}`}>
+      <span className="ch-seg-ico">{icon}</span>
+      <div className="ch-seg-track">
+        {Array.from({ length: segs }, (_, i) => <i key={i} className={i < lit ? 'on' : ''} />)}
+      </div>
+    </div>
+  );
+}
 
 function TopLeft() {
   const t = useT();
@@ -20,140 +50,125 @@ function TopLeft() {
   const shieldMax = useHud((s) => s.shieldMax);
   const energy = useHud((s) => s.energy);
   const maxEnergy = useHud((s) => s.maxEnergy);
-  const wave = useHud((s) => s.wave);
-  const total = useHud((s) => s.totalWaves);
-  const progress = useHud((s) => s.progress);
-  const low = hp / maxHp < 0.3;
   return (
-    <div className="hud-tl">
-      <div className="panel hud-card hud-row">
-        <div className="avatar" style={{ width: 36, height: 36, fontSize: 13 }}>{level}</div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontWeight: 800, fontSize: 13 }}>{name} · {t('menu.level')} {level}</div>
-          <div className="xpbar" style={{ width: '100%' }}><i style={{ width: pct(xp, xpForLevel(level)) }} /></div>
+    <div className="ch-tl">
+      <div className="ch-panel ch-profile">
+        <div className="ch-avatar"><PilotAvatar size={54} /></div>
+        <div className="ch-pinfo">
+          <div className="ch-name">{name} <span className="ch-flag" /></div>
+          <div className="ch-level">{t('menu.level')} {level}</div>
+          <div className="ch-xp"><i style={{ width: pct(xp, xpForLevel(level)) }} /></div>
         </div>
       </div>
-      <div className="panel hud-card" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-        <div className="hud-row" style={{ justifyContent: 'space-between' }}>
-          <span className="hud-label">{t('hud.health')}</span>
-          <span style={{ fontSize: 12, fontWeight: 800 }} data-testid="hud-hp">{Math.ceil(hp)}/{maxHp}</span>
-        </div>
-        <div className={`bar hp ${low ? 'low' : ''}`}><i style={{ width: pct(hp, maxHp) }} /></div>
-        {shieldMax > 0 && (
-          <>
-            <span className="hud-label">{t('hud.shield')}</span>
-            <div className="bar shield"><i style={{ width: pct(shield, shieldMax) }} /></div>
-          </>
-        )}
-        <span className="hud-label">{t('hud.energy')}</span>
-        <div className="bar energy" style={{ height: 6 }}><i style={{ width: pct(energy, maxEnergy) }} /></div>
-        <div className="hud-row" style={{ justifyContent: 'space-between', marginTop: 2 }}>
-          <span className="hud-label">{t('hud.wave', { n: wave, total })}</span>
-          <span style={{ fontSize: 11 }} className="muted">{Math.round(progress * 100)}%</span>
-        </div>
-        <div className="bar progress" style={{ height: 6 }}><i style={{ width: pct(progress, 1) }} /></div>
-      </div>
+      <Hearts ratio={hp / maxHp} />
+      <SegBar kind="energy" icon="⚡" ratio={energy / maxEnergy} />
+      {shieldMax > 0 && <SegBar kind="shield" icon="🛡" ratio={shield / shieldMax} />}
     </div>
   );
 }
 
-function TopCenter({ objective }: { objective: string }) {
+function TopCenter({ objective, missionName }: { objective: string; missionName: string }) {
   const t = useT();
   const boss = useHud((s) => s.boss);
-  return (
-    <div className="hud-tc">
-      {boss ? (
-        <div className="panel hud-card" style={{ width: '100%' }} data-testid="boss-bar">
-          <div className="hud-row" style={{ justifyContent: 'space-between' }}>
-            <span className="boss-name">{t('enemy.academyGuardian').toLocaleUpperCase('tr-TR')}</span>
-            <span className="muted" style={{ fontSize: 11 }}>{['I', 'II', 'III'][boss.phase - 1]}</span>
+  const wave = useHud((s) => s.wave);
+  const total = useHud((s) => s.totalWaves);
+  if (boss) {
+    const ratio = boss.hp / boss.maxHp;
+    return (
+      <div className="ch-tc" data-testid="boss-bar">
+        <div className="ch-panel ch-boss">
+          <span className="ch-skull">☠</span>
+          <div className="ch-boss-body">
+            <div className="ch-boss-name">BOSS – {t('enemy.academyGuardian')}</div>
+            <div className="ch-boss-track"><i style={{ width: pct(boss.hp, boss.maxHp) }} /></div>
           </div>
-          <div className="bar boss" style={{ marginTop: 4 }}><i style={{ width: pct(boss.hp, boss.maxHp) }} /></div>
+          <span className="ch-boss-pct">%{Math.ceil(ratio * 100)}</span>
         </div>
-      ) : (
-        <div className="panel objective">🎯 {objective}</div>
-      )}
+      </div>
+    );
+  }
+  return (
+    <div className="ch-tc">
+      <div className="ch-panel ch-mission">
+        <div className="ch-mission-name">⚡ {missionName}</div>
+        <div className="ch-mission-obj">🎯 {objective} · {t('hud.wave', { n: wave, total })}</div>
+      </div>
     </div>
   );
 }
 
 function TopRight() {
   const t = useT();
+  const runCoins = useHud((s) => s.coins);
+  const coins = useProfile((s) => s.coins);
+  const crystals = useProfile((s) => s.crystals);
   const score = useHud((s) => s.score);
   const combo = useHud((s) => s.combo);
-  const coins = useHud((s) => s.coins);
   return (
-    <div className="hud-tr">
-      <div className="hud-row">
-        <div className="panel hud-card hud-row" style={{ gap: 6 }}>
-          <span className="coin" />
-          <b data-testid="hud-coins">{Math.floor(coins)}</b>
-        </div>
-        <button
-          type="button"
-          className="btn pause-btn interactive"
-          aria-label={t('hud.pause')}
-          data-testid="pause-button"
-          onClick={() => getActiveController()?.togglePause(true)}
-        >
-          ❚❚
+    <div className="ch-tr">
+      <div className="ch-row">
+        <div className="ch-pill" data-testid="hud-coins"><span className="ch-coin">$</span>{fmt(coins + runCoins)}</div>
+        <div className="ch-pill"><span className="ch-gem" />{fmt(crystals)}</div>
+        <button type="button" className="ch-round interactive" aria-label={t('hud.pause')} data-testid="pause-button" onClick={() => getActiveController()?.togglePause(true)}>
+          <span className="ch-pause" />
         </button>
       </div>
-      <div style={{ textAlign: 'right' }}>
-        <div className="hud-label">{t('hud.score')}</div>
-        <div className="score" data-testid="hud-score">{score.toLocaleString('tr-TR')}</div>
-        {combo > 1 && <div className="combo" key={combo}>{t('hud.combo', { n: combo })}</div>}
+      <div className="ch-score">
+        <span>{t('hud.score')}</span> <b data-testid="hud-score">{fmt(score)}</b>
+        {combo > 1 && <em key={combo}>{t('hud.combo', { n: combo })}</em>}
       </div>
       <Radar />
     </div>
   );
 }
 
-function BottomCenter() {
+function BottomCenter({ touch }: { touch: boolean }) {
   const t = useT();
+  const hp = useHud((s) => s.hp);
+  const maxHp = useHud((s) => s.maxHp);
   const effects = useHud((s) => s.effects);
   const missiles = useHud((s) => s.missiles);
   const special = useHud((s) => s.specialReady);
   const specialActive = useHud((s) => s.specialActive);
   const dash = useHud((s) => s.dashReady);
   const locked = useHud((s) => s.locked);
+  const shield = useHud((s) => s.shieldMax > 0);
+  const low = hp / maxHp < 0.3;
   return (
-    <div className="hud-bc">
+    <div className="ch-bc">
       <div className="effects">
         {effects.map((e) => {
           const def = POWERUPS[e.id];
           const deg = (e.remaining / e.duration) * 360;
           return (
-            <div key={e.id} className="effect" style={{ borderColor: def.color, color: def.color }}>
-              <span className="ring" style={{ background: `conic-gradient(${def.color} ${deg}deg, rgba(255,255,255,0.1) 0)` }} />
+            <div key={e.id} className="ch-effect" style={{ borderColor: def.color }}>
+              <span className="ring" style={{ background: `conic-gradient(${def.color} ${deg}deg, rgba(255,255,255,0.25) 0)` }} />
               {t(def.nameKey)} {Math.ceil(e.remaining)}s
             </div>
           );
         })}
       </div>
-      <div className="ability-row">
-        <div className="panel ability">
-          <span className="key">F</span>
-          <span className="ico">➶</span>
-          <span className="lbl">{t('hud.missiles')} ×{missiles}</span>
+      {!touch && (
+        <div className="ch-slots">
+          <div className={`ch-slot shield ${shield ? 'on' : ''}`}><span>🛡</span></div>
+          <div className="ch-slot missile"><span>🚀</span><b>{missiles}</b><small>F</small></div>
+          <div className={`ch-slot special ${specialActive ? 'on' : special >= 1 ? 'ready' : ''}`}>
+            <span>💎</span>
+            {special < 1 && <i style={{ height: `${(1 - special) * 100}%` }} />}
+            <small>E</small>
+          </div>
+          <div className={`ch-slot dash ${dash >= 1 ? 'ready' : ''}`}>
+            <span>»</span>
+            {dash < 1 && <i style={{ height: `${(1 - dash) * 100}%` }} />}
+            <small>⇧</small>
+          </div>
+          <div className={`ch-slot lock ${locked ? 'on' : ''}`}><Icon name="target" size={26} /><small>T</small></div>
         </div>
-        <div className={`panel ability ${specialActive ? 'active' : special >= 1 ? 'ready' : ''}`}>
-          <span className="key">E</span>
-          <span className="ico">◆</span>
-          <span className="lbl">{special >= 1 && !specialActive ? t('hud.ready') : t('hud.special')}</span>
-          {special < 1 && <span className="cd" style={{ height: `${(1 - special) * 100}%` }} />}
-        </div>
-        <div className={`panel ability ${dash >= 1 ? 'ready' : ''}`}>
-          <span className="key">⇧</span>
-          <span className="ico">»</span>
-          <span className="lbl">{t('hud.dash')}</span>
-          {dash < 1 && <span className="cd" style={{ height: `${(1 - dash) * 100}%` }} />}
-        </div>
-        <div className={`panel ability ${locked ? 'active' : ''}`}>
-          <span className="key">T</span>
-          <span className="ico">◎</span>
-          <span className="lbl">{t('hud.lock')}</span>
-        </div>
+      )}
+      <div className={`ch-health ${low ? 'low' : ''}`}>
+        <span className="ch-plus">✚</span>
+        <div className="ch-health-track"><i style={{ width: pct(hp, maxHp) }} /></div>
+        <b data-testid="hud-hp">{fmt(hp)} / {fmt(maxHp)}</b>
       </div>
     </div>
   );
@@ -170,13 +185,13 @@ function Overlays() {
       {flash > 0 && <div key={flash} className="damage-vignette on" />}
       {hp > 0 && hp / maxHp < 0.25 && <div className="low-hp-vignette" />}
       {banner && (
-        <div key={banner.id} className={`banner ${banner.tone}`} data-testid="banner">
+        <div key={banner.id} className={`ch-banner ${banner.tone}`} data-testid="banner">
           {banner.text}
         </div>
       )}
       <div className="toasts">
         {toasts.map((x) => (
-          <div key={x.id} className="toast" style={{ borderColor: x.color, color: x.color }}>
+          <div key={x.id} className="ch-toast" style={{ background: x.color }}>
             {x.icon && <span>{x.icon}</span>}
             {x.text}
           </div>
@@ -186,18 +201,18 @@ function Overlays() {
   );
 }
 
-export function Hud({ objective }: { objective: string }) {
+export function Hud({ objective, missionName }: { objective: string; missionName: string }) {
   const t = useT();
   const showFps = useSettings((s) => s.showFps);
   const fps = useHud((s) => s.fps);
   const touch = isTouchDevice();
   return (
-    <div className={`hud ${touch ? 'touch' : ''}`} data-testid="hud">
+    <div className={`hud ch-hud ${touch ? 'touch' : ''}`} data-testid="hud">
       <Overlays />
       <TopLeft />
-      <TopCenter objective={objective} />
+      <TopCenter objective={objective} missionName={missionName} />
       <TopRight />
-      <BottomCenter />
+      <BottomCenter touch={touch} />
       {!touch && <div className="controls-hint">{t('hud.controls')}</div>}
       {showFps && <div className="fps" data-testid="fps">{fps} FPS</div>}
     </div>
