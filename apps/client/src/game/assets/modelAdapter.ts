@@ -5,6 +5,7 @@ import { buildAircraft, type AircraftModel } from '../render/aircraftModel';
 import { buildEnemy, type EnemyModel } from '../render/enemyModels';
 import { glowTexture } from '../render/textures';
 import { getGltf, getLods } from './AssetLoader';
+import { createFalconSpriteModel } from './falconSprite';
 
 const ENGINE = /^(engine|nozzle)/i;
 const TURRET = /^turret/i;
@@ -51,6 +52,8 @@ function addExhaust(node: THREE.Object3D, color: string, radius: number, flames:
 
 /** Player / hangar aircraft: GLB if available, otherwise the procedural placeholder. */
 export function createAircraftModel(def: AircraftDef, opts: { glow?: boolean } = {}): AircraftModel {
+  // Falcon X1 uses authored 2.5D artwork instead of the geometric prototype.
+  if (def.id === 'falconX1') return createFalconSpriteModel();
   const inst = instantiate(`aircraft.${def.id}`);
   if (!inst) return buildAircraft(def.model, opts);
   const group = new THREE.Group();
