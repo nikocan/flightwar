@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { AircraftDef, PlayerState } from '@sfe/shared';
-import { buildAircraft, type AircraftModel } from './aircraftModel';
+import type { AircraftModel } from './aircraftModel';
+import { createAircraftModel } from '../assets/modelAdapter';
 import type { Particles } from './Particles';
 
 /** Player aircraft: banking/pitching animation, engine flames, trails and shield bubble. */
@@ -14,7 +15,7 @@ export class PlayerRenderer {
   private roll = 0;
 
   constructor(scene: THREE.Scene, private readonly def: AircraftDef, glow: boolean) {
-    this.model = buildAircraft(def.model, { glow });
+    this.model = createAircraftModel(def, { glow });
     this.root.add(this.model.group);
     this.shieldMat = new THREE.MeshBasicMaterial({
       color: '#4dd2ff', transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending, depthWrite: false, wireframe: false, toneMapped: false,
@@ -46,6 +47,8 @@ export class PlayerRenderer {
     g.rotation.x = THREE.MathUtils.damp(g.rotation.x, p.pitch * 0.35, 8, dt);
     g.rotation.y = THREE.MathUtils.damp(g.rotation.y, -p.bank * 0.12, 8, dt);
     this.root.rotation.z = this.roll % (Math.PI * 2);
+
+    this.model.update?.(dt);
 
     // Invulnerability blink after a hit.
     this.model.group.visible = !(p.invulnerable > 0 && p.invulnerable < 0.6 && Math.sin(time * 40) > 0.3);

@@ -3,11 +3,14 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { AIRCRAFT, ENEMIES } from '@sfe/shared';
 import { Environment, THEMES } from '../game/render/Environment';
-import { buildAircraft, type AircraftModel } from '../game/render/aircraftModel';
-import { buildEnemy, type EnemyModel } from '../game/render/enemyModels';
+import type { AircraftModel } from '../game/render/aircraftModel';
+import { createAircraftModel, createEnemyModel } from '../game/assets/modelAdapter';
+import type { EnemyModel } from '../game/render/enemyModels';
 import { Particles } from '../game/render/Particles';
 import { glowTexture, planetTexture } from '../game/render/textures';
 import { QUALITY_PROFILES, useSettings } from '../state/settings';
+import { getTexture } from '../game/assets/AssetLoader';
+import { PostFX } from '../game/render/PostFX';
 
 const SPEED = 32;
 const BOSS_POS = new THREE.Vector3(0, 17, -80);
@@ -48,7 +51,7 @@ function makeWaterfall(height: number, width: number): Fall {
 
 /** Cinematic main-menu scene: hero jet attacking a mothership above the academy canyon at dusk. */
 function MenuScene() {
-  const { scene, camera } = useThree();
+  const { scene, camera, gl } = useThree();
   const quality = useSettings((s) => s.quality);
   const ref = useRef<{
     env: Environment; hero: AircraftModel; boss: EnemyModel; escorts: Escort[]; particles: Particles;
@@ -59,18 +62,19 @@ function MenuScene() {
   useEffect(() => {
     const q = { ...QUALITY_PROFILES[quality], clouds: Math.min(QUALITY_PROFILES[quality].clouds, 45) };
     const env = new Environment(scene, q, THEMES.menuDusk);
-    const hero = buildAircraft(AIRCRAFT.falconX1.model);
+    env.bakeEnvironment(gl, getTexture('hdri.sunset'));
+    const hero = createAircraftModel(AIRCRAFT.falconX1);
     hero.group.scale.setScalar(1.15);
     scene.add(hero.group);
 
-    const boss = buildEnemy('guardian', ENEMIES.academyGuardian.color);
+    const boss = createEnemyModel(ENEMIES.academyGuardian);
     boss.group.scale.setScalar(1.9);
     boss.group.position.copy(BOSS_POS);
     scene.add(boss.group);
 
     const escorts: Escort[] = [];
     for (let i = 0; i < 7; i++) {
-      const m = buildEnemy('fighter', '#ff3b4d');
+      const m = createEnemyModel({ ...ENEMIES.fighterJet, color: '#ff3b4d' });
       m.group.scale.setScalar(1.3);
       scene.add(m.group);
       escorts.push({ model: m, phase: (i / 7) * Math.PI * 2, radius: 26 + (i % 3) * 8, height: 14 + (i % 4) * 4, speed: 0.25 + (i % 2) * 0.1 });
@@ -127,7 +131,7 @@ function MenuScene() {
       scene.fog = null;
       ref.current = null;
     };
-  }, [scene, quality]);
+  }, [scene, quality, gl]);
 
   useFrame((_, rawDt) => {
     const r = ref.current;
@@ -145,7 +149,7 @@ function MenuScene() {
     for (const e of r.hero.engines) {
       r.tmp.copy(e);
       h.localToWorld(r.tmp);
-      r.particles.emit(r.tmp.x, r.tmp.y, r.tmp.z, (Math.random() - 0.5), (Math.random() - 0.5), 26, '#4fc3ff', 1.2, 0.35, -1.5, 0.3);
+      r.particles.emit(r.tmp.x, r.tmp.y, r.tmp.z, (Math.random() - 0.5), (Math.random() - 0.5), 26, '#2a7fc8', 0.7, 0.3, -1, 0.3);
     }
 
     // Mothership
@@ -153,6 +157,8 @@ function MenuScene() {
     b.position.set(BOSS_POS.x + Math.sin(t * 0.3) * 2, BOSS_POS.y + Math.sin(t * 0.5) * 1.2, BOSS_POS.z);
     b.rotation.set(0.25, 0, Math.sin(t * 0.3) * 0.04);
     for (const s of r.boss.spinners) s.obj.rotation[s.axis] += s.speed * dt;
+    r.boss.update?.(dt);
+    r.hero.update?.(dt);
     for (const p of r.boss.pulse) p.scale.setScalar(1 + Math.sin(t * 4) * 0.06);
 
     // Escort fighters circling the mothership
@@ -229,6 +235,7 @@ export function MenuBackdrop() {
     <div className="canvas-layer" aria-hidden>
       <Canvas dpr={q.dpr} gl={{ antialias: q.antialias, powerPreference: 'high-performance' }} camera={{ fov: 60, near: 0.1, far: 2000, position: [0, 3, 11] }}>
         <MenuScene />
+        <PostFX />
       </Canvas>
       <div className="menu-vignette" />
     </div>

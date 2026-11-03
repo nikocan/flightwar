@@ -192,7 +192,7 @@ export function Hud({ objective }: { objective: string }) {
   const fps = useHud((s) => s.fps);
   const touch = isTouchDevice();
   return (
-    <div className="hud" data-testid="hud">
+    <div className={`hud ${touch ? 'touch' : ''}`} data-testid="hud">
       <Overlays />
       <TopLeft />
       <TopCenter objective={objective} />

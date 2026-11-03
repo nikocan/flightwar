@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { Enemy, EnemyDef } from '@sfe/shared';
-import { buildEnemy, setHitFlash, type EnemyModel } from './enemyModels';
+import { setHitFlash, type EnemyModel } from './enemyModels';
+import { createEnemyModel } from '../assets/modelAdapter';
 
 /** Pools enemy meshes per model type and syncs them with the simulation every frame. */
 export class EnemyRenderer {
@@ -20,7 +21,7 @@ export class EnemyRenderer {
   }
 
   private create(def: EnemyDef): EnemyModel {
-    const m = buildEnemy(def.model, def.color);
+    const m = createEnemyModel(def);
     m.group.visible = false;
     this.scene.add(m.group);
     this.all.push(m);
@@ -71,6 +72,7 @@ export class EnemyRenderer {
         for (const p of m.pulse) p.scale.setScalar(1 + Math.sin(time * 6 + e.id) * 0.1);
       }
       for (const s of m.spinners) s.obj.rotation[s.axis] += s.speed * dt;
+      m.update?.(dt);
       setHitFlash(m, e.hitFlash > 0 ? e.hitFlash / 0.12 : 0);
     }
     for (const [id, m] of this.active) {

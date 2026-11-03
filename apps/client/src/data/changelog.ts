@@ -12,6 +12,24 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.2.0',
+    date: '2026-11-03',
+    phase: 2,
+    title: 'Yeni Ana Menü ve Görsel Altyapı',
+    highlights: [
+      'Ana menü yeniden tasarlandı: sol menü, kanatlı logo, altın "OYUNA BAŞLA" butonu, oyun modu kartları, alt kısayollar.',
+      'Sinematik menü sahnesi: gün batımı gökyüzü, ana gemi, eskort savaş uçakları, lazer atışları, şelaleler ve gezegen.',
+      'Günlük Ödül sandığı: her gün 100 altın + 2 kristal (içeriği her zaman belli, şans/ganimet kutusu yok).',
+      'Falcon X1 yeni renkler (beyaz/mavi/kırmızı), 4 motor ve kanat altı motor kapsülleri.',
+      'Daha büyük ve detaylı Akademi Muhafızı ana gemisi.',
+      'Profesyonel 3D model altyapısı: GLB/GLTF modeller, sıkıştırılmış dokular (Draco, Meshopt, KTX2), LOD ve yedek modeller.',
+      'Sinematik görüntü: parlama (bloom), renk düzenleme, ACES ton eşleme, gökyüzünden yansımalar.',
+      'Uyarlanabilir çözünürlük: oyun FPS düşerse görüntü kalitesini otomatik ayarlar (iPhone için).',
+      'iPhone yatay mod için sadeleştirilmiş dokunmatik HUD, Dynamic Island güvenli alan desteği, yakınlaştırma hareketleri engellendi.',
+      'Not: Gerçek detaylı uçak ve ana gemi modelleri henüz eklenmedi — dosyalar sağlandığında otomatik yüklenecek.',
+    ],
+  },
+  {
     version: '0.1.0',
     date: '2026-11-03',
     phase: 1,
@@ -46,7 +64,7 @@ export interface RoadmapItem {
 
 export const ROADMAP: RoadmapItem[] = [
   { phase: 1, title: 'Oynanabilir çekirdek: uçuş, ateş, düşmanlar, ilk görev', status: 'done' },
-  { phase: 2, title: 'Görsel cila: detaylı ortamlar, gelişmiş ışık, bloom, müzik', status: 'next' },
+  { phase: 2, title: 'Görsel kalite: model altyapısı ve bloom hazır — detaylı 3D modeller bekleniyor', status: 'next' },
   { phase: 3, title: 'Kampanya: 10 bölüm × 10 görev, bosslar, günlük görevler', status: 'planned' },
   { phase: 4, title: '3D hangar, 8 uçak, 10 silah, geliştirme sistemi', status: 'planned' },
   { phase: 5, title: 'Çok oyunculu: 1v1 düello, ortak görevler, özel odalar', status: 'planned' },

@@ -35,7 +35,7 @@ export class Particles {
     this.drag = new Float32Array(capacity);
     const geo = new THREE.PlaneGeometry(1, 1);
     const mat = new THREE.MeshBasicMaterial({
-      map: glowTexture(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, fog: false,
+      map: glowTexture(), transparent: true, opacity: 0.65, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, fog: false,
     });
     this.mesh = new THREE.InstancedMesh(geo, mat, capacity);
     this.mesh.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(capacity * 3), 3);

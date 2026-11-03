@@ -55,11 +55,14 @@ export interface QualityProfile {
   particles: number;
   terrainSegments: number;
   glowSprites: boolean;
+  /** Post-processing bloom + colour grade. */
+  bloom: boolean;
+  bloomStrength: number;
 }
 
 export const QUALITY_PROFILES: Record<Quality, QualityProfile> = {
-  low: { dpr: [0.75, 1], antialias: false, shadows: false, clouds: 14, particles: 400, terrainSegments: 64, glowSprites: false },
-  medium: { dpr: [1, 1.5], antialias: true, shadows: false, clouds: 30, particles: 900, terrainSegments: 110, glowSprites: true },
-  high: { dpr: [1, 2], antialias: true, shadows: true, clouds: 55, particles: 1600, terrainSegments: 160, glowSprites: true },
-  ultra: { dpr: [1.5, 2], antialias: true, shadows: true, clouds: 90, particles: 2600, terrainSegments: 220, glowSprites: true },
+  low: { dpr: [0.75, 1], antialias: false, shadows: false, clouds: 14, particles: 400, terrainSegments: 64, glowSprites: false, bloom: false, bloomStrength: 0 },
+  medium: { dpr: [1, 1.5], antialias: true, shadows: false, clouds: 30, particles: 900, terrainSegments: 110, glowSprites: true, bloom: true, bloomStrength: 0.32 },
+  high: { dpr: [1, 2], antialias: true, shadows: true, clouds: 55, particles: 1600, terrainSegments: 160, glowSprites: true, bloom: true, bloomStrength: 0.4 },
+  ultra: { dpr: [1.5, 2], antialias: true, shadows: true, clouds: 90, particles: 2600, terrainSegments: 220, glowSprites: true, bloom: true, bloomStrength: 0.48 },
 };

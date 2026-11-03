@@ -10,6 +10,8 @@ export interface EnemyModel {
   baseEmissive: { mat: THREE.MeshStandardMaterial; color: THREE.Color; intensity: number }[];
   spinners: { obj: THREE.Object3D; axis: 'x' | 'y' | 'z'; speed: number }[];
   pulse: THREE.Object3D[];
+  /** Advances GLB animation clips (if any). */
+  update?: (dt: number) => void;
   dispose: () => void;
 }
 

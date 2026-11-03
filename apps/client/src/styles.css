@@ -491,3 +491,27 @@ button { font-family: inherit; color: inherit; }
 .sf-feature-name { position: absolute; left: 22px; bottom: 40px; font-size: 32px; font-weight: 800; text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7); }
 .sf-feature-stars { position: absolute; left: 22px; bottom: 8px; font-size: 28px; color: #ffd23f; letter-spacing: 2px; text-shadow: 0 0 10px rgba(255, 200, 40, 0.8); }
 .sf-feature-arrow { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 52px; font-weight: 300; }
+
+/* ───────── Mobile (touch, landscape) gameplay HUD ─────────
+   Thumb zones stay clear: joystick bottom-left, actions bottom-right. The desktop ability bar is
+   replaced by the touch buttons, and panels are compact and respect the safe areas (Dynamic Island). */
+.hud.touch .hud-bc .ability-row { display: none; }
+.hud.touch .hud-tl { width: min(230px, 30vw); left: max(10px, env(safe-area-inset-left)); top: max(8px, env(safe-area-inset-top)); gap: 4px; }
+.hud.touch .hud-tl > .panel:first-child { display: none; }
+.hud.touch .hud-card { padding: 6px 10px; }
+.hud.touch .hud-label { font-size: 9px; }
+.hud.touch .bar { height: 7px; }
+.hud.touch .hud-tc { top: max(8px, env(safe-area-inset-top)); width: min(420px, 42vw); }
+.hud.touch .hud-tr { right: max(10px, env(safe-area-inset-right)); top: max(8px, env(safe-area-inset-top)); gap: 4px; }
+.hud.touch .radar { width: 84px; height: 84px; }
+.hud.touch .score { font-size: 17px; }
+.hud.touch .hud-bc { top: auto; bottom: max(8px, env(safe-area-inset-bottom)); width: 40vw; }
+.hud.touch .toasts { top: 30%; right: 50%; transform: translateX(50%); align-items: center; }
+.hud.touch .banner { top: 30%; font-size: clamp(13px, 3.2vw, 22px); }
+@media (max-height: 430px) {
+  .hud.touch .hud-tl .hud-row:last-of-type, .hud.touch .hud-tl .bar.progress { display: none; }
+  .joystick { width: 128px; height: 128px; bottom: max(14px, env(safe-area-inset-bottom)); left: max(18px, env(safe-area-inset-left)); }
+  .joystick .knob { width: 54px; height: 54px; margin: -27px 0 0 -27px; }
+  .touch-buttons { bottom: max(10px, env(safe-area-inset-bottom)); right: max(14px, env(safe-area-inset-right)); transform-origin: bottom right; }
+}
+html, body { overscroll-behavior: none; }

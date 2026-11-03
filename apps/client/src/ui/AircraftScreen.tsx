@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { AIRCRAFT, AIRCRAFT_ORDER, SPECIALS, WEAPONS, type AircraftDef, type AircraftId } from '@sfe/shared';
-import { buildAircraft, type AircraftModel } from '../game/render/aircraftModel';
+import type { AircraftModel } from '../game/render/aircraftModel';
+import { createAircraftModel } from '../game/assets/modelAdapter';
 import { useT } from '../i18n';
 import { useApp } from '../state/app';
 import { useProfile } from '../state/profile';
@@ -12,7 +13,7 @@ function Preview({ def }: { def: AircraftDef }) {
   const { scene } = useThree();
   const ref = useRef<AircraftModel | null>(null);
   useEffect(() => {
-    const m = buildAircraft(def.model);
+    const m = createAircraftModel(def);
     scene.add(m.group);
     ref.current = m;
     return () => {

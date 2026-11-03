@@ -79,8 +79,12 @@ export class Environment {
   private readonly dummy = new THREE.Object3D();
   private scroll = 0;
   private disposables: { dispose: () => void }[] = [];
+  private sky!: THREE.Mesh;
+  private envTarget: THREE.WebGLRenderTarget | null = null;
+  private scene: THREE.Scene;
 
   constructor(scene: THREE.Scene, quality: QualityProfile, theme: EnvironmentTheme = THEMES.skyAcademy) {
+    this.scene = scene;
     scene.add(this.root);
     scene.fog = new THREE.Fog(theme.fog, theme.fogNear, theme.fogFar);
     scene.background = new THREE.Color(theme.horizon);
@@ -128,6 +132,7 @@ export class Environment {
         }`,
     });
     const sky = new THREE.Mesh(skyGeo, skyMat);
+    this.sky = sky;
     sky.frustumCulled = false;
     sky.renderOrder = -10;
     this.root.add(sky);
@@ -294,6 +299,26 @@ export class Environment {
     this.disposables.push(streakGeo, streakMat);
   }
 
+  /**
+   * Image-based lighting: uses a supplied HDR when available, otherwise bakes the procedural
+   * sunset sky into a prefiltered environment map so PBR metals get real reflections.
+   */
+  bakeEnvironment(renderer: THREE.WebGLRenderer, hdr?: THREE.Texture): void {
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    if (hdr) {
+      this.envTarget = pmrem.fromEquirectangular(hdr);
+    } else {
+      const envScene = new THREE.Scene();
+      const skyCopy = new THREE.Mesh(this.sky.geometry, this.sky.material);
+      skyCopy.scale.setScalar(0.05);
+      envScene.add(skyCopy);
+      this.envTarget = pmrem.fromScene(envScene, 0.02);
+    }
+    pmrem.dispose();
+    this.scene.environment = this.envTarget.texture;
+    this.scene.environmentIntensity = 0.9;
+  }
+
   /** `speed` is the forward flight speed in world units / second. */
   update(dt: number, speed: number, time: number): void {
     this.scroll += speed * dt;
@@ -332,6 +357,8 @@ export class Environment {
   }
 
   dispose(): void {
+    if (this.scene.environment === this.envTarget?.texture) this.scene.environment = null;
+    this.envTarget?.dispose();
     this.root.removeFromParent();
     this.disposables.forEach((x) => x.dispose());
     this.clouds.dispose();

@@ -9,7 +9,7 @@ export function GameScene({ missionId, runId }: { missionId: string; runId: numb
   const ref = useRef<GameController | null>(null);
 
   useEffect(() => {
-    const c = new GameController(scene, camera as THREE.PerspectiveCamera, gl.domElement, missionId);
+    const c = new GameController(scene, camera as THREE.PerspectiveCamera, gl, gl.domElement, missionId);
     ref.current = c;
     return () => {
       c.dispose();

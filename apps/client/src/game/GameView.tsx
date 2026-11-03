@@ -11,6 +11,7 @@ import { PauseMenu } from '../ui/PauseMenu';
 import { ResultScreen } from '../ui/ResultScreen';
 import { TouchControls, isTouchDevice } from '../ui/TouchControls';
 import { GameScene } from './GameScene';
+import { PostFX } from './render/PostFX';
 
 export function GameView({ missionId, runId }: { missionId: string; runId: number }) {
   const t = useT();
@@ -44,6 +45,7 @@ export function GameView({ missionId, runId }: { missionId: string; runId: numbe
         >
           <Suspense fallback={null}>
             <GameScene missionId={missionId} runId={runId} />
+            <PostFX />
           </Suspense>
         </Canvas>
       </div>

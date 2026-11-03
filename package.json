@@ -1,7 +1,7 @@
 {
   "name": "sky-force-evolution",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "SKY FORCE EVOLUTION — futuristic 3D arcade aircraft combat game (monorepo)",
   "workspaces": [
     "packages/*",

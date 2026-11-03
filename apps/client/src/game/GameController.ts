@@ -17,6 +17,7 @@ import { useHud, type HudEffect } from '../state/hud';
 import { useProfile } from '../state/profile';
 import { QUALITY_PROFILES, useSettings } from '../state/settings';
 import { InputManager } from './input';
+import { getTexture } from './assets/AssetLoader';
 import { EnemyRenderer } from './render/EnemyRenderer';
 import { Environment, THEMES } from './render/Environment';
 import { FxRenderer } from './render/FxRenderer';
@@ -65,6 +66,7 @@ export class GameController {
   constructor(
     private readonly scene: THREE.Scene,
     private readonly camera: THREE.PerspectiveCamera,
+    renderer: THREE.WebGLRenderer,
     canvas: HTMLElement,
     missionId: string,
   ) {
@@ -73,6 +75,7 @@ export class GameController {
     this.mission = mission;
     const q = QUALITY_PROFILES[useSettings.getState().quality];
     this.env = new Environment(scene, q, THEMES[mission.theme] ?? THEMES.skyAcademy);
+    this.env.bakeEnvironment(renderer, getTexture('hdri.sunset'));
     this.particles = new Particles(scene, q.particles);
     this.projectiles = new ProjectileRenderer(scene, 900, WEAPONS.machineGun.color);
     this.enemies = new EnemyRenderer(scene);

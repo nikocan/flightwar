@@ -104,6 +104,8 @@ export interface AircraftModel {
   engines: THREE.Vector3[];
   flames: THREE.Mesh[];
   glows: THREE.Sprite[];
+  /** Advances GLB animation clips (if any). */
+  update?: (dt: number) => void;
   dispose: () => void;
 }
 
@@ -192,7 +194,7 @@ export function buildAircraft(params: AircraftModelParams, opts: { glow?: boolea
   flameGeo.rotateX(-Math.PI / 2);
   flameGeo.translate(0, 0, 1.1);
   const flameMat = trackM(new THREE.MeshBasicMaterial({
-    color: params.engine, transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false,
+    color: params.engine, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false,
   }));
   const coreMat = trackM(new THREE.MeshBasicMaterial({ color: '#ffffff', toneMapped: false }));
   const glowMat = trackM(new THREE.SpriteMaterial({

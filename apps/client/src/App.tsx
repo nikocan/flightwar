@@ -1,4 +1,5 @@
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
+import { preloadAssets } from './game/assets/AssetLoader';
 import { audio } from './audio/AudioEngine';
 import { useT } from './i18n';
 import { useApp } from './state/app';
@@ -29,6 +30,12 @@ function Loading() {
 export function App() {
   const screen = useApp((s) => s.screen);
   const go = useApp((s) => s.go);
+  const [assetsReady, setAssetsReady] = useState(false);
+
+  // Production GLB/HDR assets (missing files fall back to procedural models).
+  useEffect(() => {
+    void preloadAssets().finally(() => setAssetsReady(true));
+  }, []);
 
   // Browsers only allow audio after a user gesture.
   useEffect(() => {
@@ -43,6 +50,8 @@ export function App() {
       window.removeEventListener('keydown', unlock);
     };
   }, []);
+
+  if (!assetsReady) return <Loading />;
 
   let content;
   switch (screen.id) {
