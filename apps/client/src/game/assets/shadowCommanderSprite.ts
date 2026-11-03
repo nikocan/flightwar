@@ -4,10 +4,9 @@ import type { EnemyModel } from '../render/enemyModels';
 /** Shadow Commander artwork rendered as a world-space 2.5D sprite. */
 export function createShadowCommanderSprite(): EnemyModel {
   const group = new THREE.Group();
-  const geometry = new THREE.PlaneGeometry(32, 19.2);
-  geometry.rotateX(-Math.PI / 2);
-  // Boss artwork is drawn facing the player (+Z).
-  geometry.rotateY(Math.PI);
+  // Upright card facing the player/camera (+Z), slightly tilted so it reads as 2.5D.
+  const geometry = new THREE.PlaneGeometry(30, 18);
+  geometry.rotateX(-0.25);
   const texture = new THREE.TextureLoader().load('/game-assets/bosses/shadow-commander.svg');
   texture.colorSpace = THREE.SRGBColorSpace;
   const material = new THREE.MeshBasicMaterial({

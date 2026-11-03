@@ -4,9 +4,9 @@ import type { EnemyModel } from '../render/enemyModels';
 /** Experimental authored 2.5D Scout Drone, preserving original AI and hitboxes. */
 export function createScoutDroneSprite(): EnemyModel {
   const group = new THREE.Group();
+  // Upright card facing the camera (+Z).
   const geometry = new THREE.PlaneGeometry(3.6, 3);
-  geometry.rotateX(-Math.PI / 2);
-  geometry.rotateY(Math.PI);
+  geometry.rotateX(-0.3);
   const texture = new THREE.TextureLoader().load('/game-assets/enemies/scout-drone.svg');
   texture.colorSpace = THREE.SRGBColorSpace;
   const material = new THREE.MeshBasicMaterial({
