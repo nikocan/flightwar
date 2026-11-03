@@ -1,0 +1,21 @@
+{
+  "name": "sky-force-evolution",
+  "private": true,
+  "version": "0.1.0",
+  "description": "SKY FORCE EVOLUTION — futuristic 3D arcade aircraft combat game (monorepo)",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @sfe/client",
+    "build": "npm run build -w @sfe/client",
+    "preview": "npm run preview -w @sfe/client",
+    "typecheck": "npm run typecheck -w @sfe/shared && npm run typecheck -w @sfe/client",
+    "test": "npm run test -w @sfe/shared",
+    "test:e2e": "npm run test:e2e -w @sfe/client"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
