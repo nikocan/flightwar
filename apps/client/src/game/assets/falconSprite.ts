@@ -10,8 +10,8 @@ export function createFalconSpriteModel(): AircraftModel {
   const group = new THREE.Group();
   // Upright card facing the chase camera, tilted back so the top-view art reads as 2.5D.
   // (A plane lying flat on XZ is seen edge-on from the camera and becomes invisible.)
-  const geometry = new THREE.PlaneGeometry(5.6, 6.6);
-  geometry.rotateX(-0.55);
+  const geometry = new THREE.PlaneGeometry(3.65, 4.3);
+  geometry.rotateX(-0.82);
   const texture = new THREE.TextureLoader().load('/game-assets/aircraft/falcon-x1.svg');
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 4;
@@ -28,9 +28,9 @@ export function createFalconSpriteModel(): AircraftModel {
   group.add(aircraft);
   // Exhaust points at the bottom edge of the tilted card.
   const engines = [
-    new THREE.Vector3(-0.38, -2.7, 1.9),
-    new THREE.Vector3(0, -2.8, 2.0),
-    new THREE.Vector3(0.38, -2.7, 1.9),
+    new THREE.Vector3(-0.25, -1.45, 1.58),
+    new THREE.Vector3(0, -1.5, 1.62),
+    new THREE.Vector3(0.25, -1.45, 1.58),
   ];
   return {
     group,
