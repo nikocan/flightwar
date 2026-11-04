@@ -50,6 +50,8 @@ export interface ProfileState {
   claimDaily: () => { coins: number; crystals: number } | null;
   recordMission: (missionId: string, stats: MissionOutcome['stats'], difficulty: Difficulty) => MissionOutcome | null;
   markVersionSeen: (v: string) => void;
+  /** Selects an owned aircraft (ignored for locked ones). */
+  selectAircraft: (id: AircraftId) => void;
   reset: () => void;
 }
 
@@ -104,6 +106,9 @@ export const useProfile = create<ProfileState>()(
         return { missionId, victory: stats.victory, stats, grant, newBest, levelBefore: s.level, levelAfter: lvl.level };
       },
       markVersionSeen: (v) => set({ lastSeenVersion: v }),
+      selectAircraft: (id) => {
+        if (get().ownedAircraft.includes(id)) set({ selectedAircraft: id });
+      },
       canClaimDaily: () => get().lastDailyClaim !== today(),
       claimDaily: () => {
         const s = get();

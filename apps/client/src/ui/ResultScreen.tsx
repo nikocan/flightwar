@@ -17,6 +17,7 @@ export function ResultScreen() {
   return (
     <div className="overlay" data-testid="result-screen">
       <div className={`panel holo-edge dialog result ${victory ? 'victory' : 'defeat'}`}>
+        <div className="c-result-left">
         <h1 data-testid="result-title">{victory ? t('result.victory') : t('result.defeat')}</h1>
         {mission && <div className="muted">{mission.id} · {t(mission.nameKey)}</div>}
         {victory ? (
@@ -34,6 +35,8 @@ export function ResultScreen() {
           <div className="stat"><span className="hud-label">{t('result.maxCombo')}</span><b>x{stats.maxCombo}</b></div>
           <div className="stat"><span className="hud-label">{t('result.time')}</span><b>{fmtTime(stats.time)}</b></div>
         </div>
+        </div>
+        <div className="c-result-right">
         <div className="section-title">{t('result.rewards')}</div>
         <div className="reward-row" style={{ justifyContent: 'center' }} data-testid="result-rewards">
           <span className="reward"><span className="coin" /> +{grant.coins}</span>
@@ -49,6 +52,7 @@ export function ResultScreen() {
             🗺 {t('result.missions')}
           </Btn>
           <Btn onClick={() => go({ id: 'menu' })} data-testid="to-menu">⌂ {t('result.menu')}</Btn>
+        </div>
         </div>
       </div>
     </div>
