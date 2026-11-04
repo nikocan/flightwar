@@ -176,7 +176,7 @@ export class GameController {
     this.env.update(dt, FLIGHT_SPEED * (boosting ? 1.5 : 1), this.time);
     this.player.update(p, this.alpha, dt, this.time, this.particles, boosting);
     this.enemies.update(w.enemies, this.alpha, this.time, dt);
-    this.projectiles.update(w.projectiles, this.alpha);
+    this.projectiles.update(w.projectiles, this.alpha, this.camera);
     this.powerUps.update(w.powerUps, this.alpha, this.time);
     this.emitMissileTrails();
     this.updateCamera(dt, boosting);
@@ -225,7 +225,8 @@ export class GameController {
       this.camPos.z,
     );
     this.camera.lookAt(this.camLook);
-    this.camera.rotateZ(-p.bank * 0.06);
+    // Flat 2.5D cards look crooked if the whole view rolls; keep the horizon level for them.
+    this.camera.rotateZ(-p.bank * (this.player.model.billboard ? 0.015 : 0.06));
     const fov = boosting ? 72 : 62;
     this.camera.fov = THREE.MathUtils.damp(this.camera.fov, fov, 4, dt);
     this.camera.updateProjectionMatrix();

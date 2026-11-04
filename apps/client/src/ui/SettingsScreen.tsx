@@ -120,12 +120,18 @@ export function SettingsPanel({ inGame = false }: { inGame?: boolean }) {
 export function SettingsScreen() {
   const t = useT();
   const go = useApp((s) => s.go);
+  const artLink = (
+    <div className="settings" style={{ paddingTop: 0 }}>
+      <Btn onClick={() => go({ id: 'artStatus' })} data-testid="art-status-link">🎨 Grafik Paketi Durumu</Btn>
+    </div>
+  );
   return (
     <div className="screen" data-testid="settings">
       <div className="bg-gradient" />
       <TopBar title={t('settings.title')} onBack={() => go({ id: 'menu' })} />
       <div className="page screen-scroll">
         <SettingsPanel />
+        {artLink}
       </div>
     </div>
   );

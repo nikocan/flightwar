@@ -40,13 +40,24 @@ export class PlayerRenderer {
 
     // Smooth bank and pitch; a full barrel roll while dashing.
     const dashing = p.dashTimer > 0;
-    if (dashing) this.roll += dt * 26 * Math.sign(p.dashDirX || 1);
-    else this.roll = THREE.MathUtils.damp(this.roll, Math.round(this.roll / (Math.PI * 2)) * Math.PI * 2, 10, dt);
     const g = this.model.group;
-    g.rotation.z = THREE.MathUtils.damp(g.rotation.z, p.bank * 0.75, 8, dt) + (dashing ? 0 : 0);
-    g.rotation.x = THREE.MathUtils.damp(g.rotation.x, p.pitch * 0.35, 8, dt);
-    g.rotation.y = THREE.MathUtils.damp(g.rotation.y, -p.bank * 0.12, 8, dt);
-    this.root.rotation.z = this.roll % (Math.PI * 2);
+    if (this.model.billboard) {
+      // Flat 2.5D artwork: always face the camera and fly straight. Turning = a gentle lean,
+      // dash = a quick horizontal squash (a 3D barrel roll would show the card edge-on).
+      g.rotation.x = 0;
+      g.rotation.y = 0;
+      g.rotation.z = THREE.MathUtils.damp(g.rotation.z, p.bank * 0.16, 10, dt);
+      const squash = dashing ? 0.82 : 1;
+      g.scale.x = THREE.MathUtils.damp(g.scale.x, squash, 18, dt);
+      this.root.rotation.z = 0;
+    } else {
+      if (dashing) this.roll += dt * 26 * Math.sign(p.dashDirX || 1);
+      else this.roll = THREE.MathUtils.damp(this.roll, Math.round(this.roll / (Math.PI * 2)) * Math.PI * 2, 10, dt);
+      g.rotation.z = THREE.MathUtils.damp(g.rotation.z, p.bank * 0.75, 8, dt);
+      g.rotation.x = THREE.MathUtils.damp(g.rotation.x, p.pitch * 0.35, 8, dt);
+      g.rotation.y = THREE.MathUtils.damp(g.rotation.y, -p.bank * 0.12, 8, dt);
+      this.root.rotation.z = this.roll % (Math.PI * 2);
+    }
 
     this.model.update?.(dt);
 

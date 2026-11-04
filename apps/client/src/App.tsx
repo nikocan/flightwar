@@ -1,5 +1,6 @@
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { preloadAssets } from './game/assets/AssetLoader';
+import { preloadApprovedArt } from './game/assets/artSprites';
 import { audio } from './audio/AudioEngine';
 import { useT } from './i18n';
 import { useApp } from './state/app';
@@ -9,6 +10,7 @@ import { MissionSelect } from './ui/MissionSelect';
 import { SettingsScreen } from './ui/SettingsScreen';
 import { UpdatesScreen } from './ui/UpdatesScreen';
 import { ComingSoon } from './ui/ComingSoon';
+import { ArtStatusScreen } from './ui/ArtStatusScreen';
 
 // Heavier 3D screens are code-split so the menu appears quickly.
 const GameView = lazy(() => import('./game/GameView').then((m) => ({ default: m.GameView })));
@@ -34,7 +36,7 @@ export function App() {
 
   // Production GLB/HDR assets (missing files fall back to procedural models).
   useEffect(() => {
-    void preloadAssets().finally(() => setAssetsReady(true));
+    void Promise.all([preloadAssets(), preloadApprovedArt()]).finally(() => setAssetsReady(true));
   }, []);
 
   // Browsers only allow audio after a user gesture.
@@ -72,6 +74,9 @@ export function App() {
       break;
     case 'aircraft':
       content = <AircraftScreen />;
+      break;
+    case 'artStatus':
+      content = <ArtStatusScreen />;
       break;
     case 'soon':
       content = <ComingSoon titleKey={screen.titleKey} bodyKey={screen.bodyKey} phase={screen.phase} />;

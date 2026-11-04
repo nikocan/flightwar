@@ -13,3 +13,4 @@ export * from './sim/damage';
 export * from './sim/spatialHash';
 export * from './sim/loop';
 export * from './sim/world';
+export * from './art/manifest';

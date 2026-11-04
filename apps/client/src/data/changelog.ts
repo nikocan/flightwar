@@ -12,6 +12,21 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.4.0',
+    date: '2026-11-04',
+    phase: 2,
+    title: 'Düz Uçuş, Yeni Lazer ve Patlamalar, Grafik Paketi Hazırlığı',
+    highlights: [
+      'Falcon X1 artık dümdüz uçuyor: dönüşlerde sadece hafif yatıyor, yamulma ve takla yok; şekli ezilmeden tam görünüyor.',
+      'Falcon X1\'e grafik sayfasındaki gibi 3 mavi motor alevi eklendi.',
+      'Lazerler artık uzun, parlak mavi ışın olarak görünüyor (eskiden uzaklaşırken nokta gibi görünüyordu); düşman mermileri kırmızı-turuncu.',
+      'Patlamalar: sarı-turuncu-kırmızı çizgi film ateş topu ve ardından gri duman bulutları.',
+      'Onaylı grafik paketi altyapısı hazır: 8 uçak, 6 düşman, 3 aşamalı boss, mermiler, efektler, bonuslar, 10 bölüm ortamı ve arayüz için 124 dosyalık liste.',
+      'Ayarlar → "Grafik Paketi Durumu" ekranından hangi grafiklerin geldiğini ve oyunda kullanıldığını takip edebilirsin.',
+      'Not: Gerçek grafik paketi henüz gelmedi; gelen her dosya kontrol edilip onaylandıktan sonra oyuna girecek.',
+    ],
+  },
+  {
     version: '0.3.0',
     date: '2026-11-03',
     phase: 2,

@@ -67,6 +67,7 @@ export class EnemyRenderer {
         // Telegraph: core glows hotter right before a heavy attack.
         const tele = e.telegraph > 0 ? 1 + Math.sin(time * 30) * 0.5 : 0;
         for (const p of m.pulse) p.scale.setScalar(1 + Math.sin(time * 4) * 0.06 + tele * 0.2);
+        m.setPhase?.(e.bossPhase);
       } else {
         g.rotation.set(-pitch, e.state === 'retreat' ? Math.PI : 0, bank);
         for (const p of m.pulse) p.scale.setScalar(1 + Math.sin(time * 6 + e.id) * 0.1);

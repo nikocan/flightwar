@@ -8,6 +8,7 @@ export type Screen =
   | { id: 'settings'; from: 'menu' }
   | { id: 'updates' }
   | { id: 'aircraft' }
+  | { id: 'artStatus' }
   | { id: 'soon'; titleKey: string; bodyKey: string; phase: number };
 
 interface AppState {

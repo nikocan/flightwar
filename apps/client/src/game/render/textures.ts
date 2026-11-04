@@ -132,3 +132,57 @@ export const planetTexture = () =>
     ctx.ellipse(s / 2, s / 2, r * 1.6, r * 0.32, -0.35, 0, Math.PI * 2);
     ctx.stroke();
   });
+
+/**
+ * Laser bolt (sheet "Lazer Atışı"): white-hot rounded head, coloured glow, tapering comet tail.
+ * Drawn white so per-instance colour tints it (cyan for player, red/orange for enemies).
+ */
+export const boltTexture = () =>
+  canvasTexture('bolt', 128, (ctx, s) => {
+    const w = s;
+    const h = s;
+    ctx.clearRect(0, 0, w, h);
+    // Soft outer glow along the whole bolt
+    for (let i = 0; i < 3; i++) {
+      const g = ctx.createLinearGradient(0, 0, 0, h);
+      g.addColorStop(0, 'rgba(255,255,255,0)');
+      g.addColorStop(0.15, `rgba(255,255,255,${0.18 + i * 0.1})`);
+      g.addColorStop(0.35, `rgba(255,255,255,${0.12 + i * 0.08})`);
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = g;
+      const bw = w * (0.62 - i * 0.18);
+      ctx.beginPath();
+      ctx.ellipse(w / 2, h * 0.42, bw / 2, h * 0.42, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    // Bright core with tapering tail
+    const core = ctx.createLinearGradient(0, h * 0.08, 0, h * 0.95);
+    core.addColorStop(0, 'rgba(255,255,255,1)');
+    core.addColorStop(0.3, 'rgba(255,255,255,0.95)');
+    core.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = core;
+    ctx.beginPath();
+    ctx.moveTo(w / 2, h * 0.06);
+    ctx.quadraticCurveTo(w * 0.66, h * 0.12, w * 0.6, h * 0.3);
+    ctx.lineTo(w / 2, h * 0.96);
+    ctx.lineTo(w * 0.4, h * 0.3);
+    ctx.quadraticCurveTo(w * 0.34, h * 0.12, w / 2, h * 0.06);
+    ctx.fill();
+  });
+
+/** Fluffy cartoon puff (sheet "Patlama Efektleri"): several overlapping soft circles. White, tinted per particle. */
+export const puffTexture = () =>
+  canvasTexture('puff', 128, (ctx, s) => {
+    ctx.clearRect(0, 0, s, s);
+    const blobs: [number, number, number][] = [[0.5, 0.5, 0.3], [0.33, 0.42, 0.2], [0.66, 0.4, 0.21], [0.4, 0.66, 0.19], [0.64, 0.64, 0.2], [0.5, 0.3, 0.18]];
+    for (const [x, y, r] of blobs) {
+      const g = ctx.createRadialGradient(x * s - r * s * 0.3, y * s - r * s * 0.3, 0, x * s, y * s, r * s);
+      g.addColorStop(0, 'rgba(255,255,255,1)');
+      g.addColorStop(0.75, 'rgba(235,235,235,1)');
+      g.addColorStop(1, 'rgba(210,210,210,0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x * s, y * s, r * s, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });

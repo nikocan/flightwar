@@ -41,6 +41,8 @@ export interface AircraftModel {
   glows: THREE.Sprite[];
   /** Advances GLB animation clips (if any). */
   update?: (dt: number) => void;
+  /** Flat 2.5D card: keep it facing the camera, only a gentle screen-space tilt when banking. */
+  billboard?: boolean;
   dispose: () => void;
 }
 

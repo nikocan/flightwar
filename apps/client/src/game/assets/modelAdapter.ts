@@ -5,6 +5,8 @@ import { buildAircraft, type AircraftModel } from '../render/aircraftModel';
 import { buildEnemy, type EnemyModel, type FlashMaterial } from '../render/enemyModels';
 import { glowTexture } from '../render/textures';
 import { getGltf, getLods } from './AssetLoader';
+import { anchorToLocal, artTexture, cardGeometry, cardMaterial, readyArtFor } from './artSprites';
+import { artById } from '@sfe/shared';
 import { createFalconSpriteModel } from './falconSprite';
 import { createShadowCommanderSprite } from './shadowCommanderSprite';
 import { createScoutDroneSprite } from './scoutDroneSprite';
@@ -54,6 +56,10 @@ function addExhaust(node: THREE.Object3D, color: string, radius: number, flames:
 
 /** Player / hangar aircraft: GLB if available, otherwise the procedural placeholder. */
 export function createAircraftModel(def: AircraftDef, opts: { glow?: boolean } = {}): AircraftModel {
+  // 1) Approved production art from the graphics package (artwork lock).
+  const art = readyArtFor('aircraft', def.id);
+  if (art) return artAircraftCard(art.spec, art.texture, def.model.engine);
+  // 2) Existing visuals until the package is delivered and approved.
   // Falcon X1 uses authored 2.5D artwork instead of the geometric prototype.
   if (def.id === 'falconX1') return createFalconSpriteModel();
   const inst = instantiate(`aircraft.${def.id}`);
@@ -96,6 +102,13 @@ export function createAircraftModel(def: AircraftDef, opts: { glow?: boolean } =
 
 /** Enemy / boss: GLB if available (materials cloned per instance for hit flashes), else procedural. */
 export function createEnemyModel(def: EnemyDef): EnemyModel {
+  if (def.behavior === 'boss') {
+    const phases = [1, 2, 3].map((n) => artTexture(`shadow-commander-phase-${n}`));
+    if (phases.every(Boolean)) return artBossCard(phases as THREE.Texture[]);
+  } else {
+    const art = readyArtFor('enemy', def.id);
+    if (art) return artEnemyCard(art.spec, art.texture);
+  }
   if (def.behavior === 'boss') return createShadowCommanderSprite();
   if (def.id === 'scoutDrone') return createScoutDroneSprite();
   const id = `enemy.${def.id}`;
@@ -132,5 +145,73 @@ export function createEnemyModel(def: EnemyDef): EnemyModel {
     pulse,
     update: (dt: number) => mixer?.update(dt),
     dispose: () => owned.forEach((m) => m.dispose()),
+  };
+}
+
+// ───────────── Production art cards (used only for approved, loaded assets) ─────────────
+
+function flashable(mat: THREE.MeshBasicMaterial) {
+  const base = mat.color.clone();
+  return (amount: number) => {
+    mat.color.copy(base).multiplyScalar(1 + 0.6 * amount);
+  };
+}
+
+function artAircraftCard(spec: import('@sfe/shared').ArtAssetSpec, texture: THREE.Texture, engineColor: string): AircraftModel {
+  const group = new THREE.Group();
+  const geo = cardGeometry(spec, texture);
+  const mat = cardMaterial(texture);
+  const card = new THREE.Mesh(geo, mat);
+  card.renderOrder = 5;
+  group.add(card);
+  const flames: THREE.Mesh[] = [];
+  const glows: THREE.Sprite[] = [];
+  const disposables: { dispose: () => void }[] = [geo, mat];
+  const engines = (spec.world?.engines ?? []).map((a) => {
+    const p = anchorToLocal(spec, geo, a);
+    const n = new THREE.Object3D();
+    n.position.copy(p);
+    group.add(n);
+    addExhaust(n, engineColor, 0.16, flames, glows, disposables);
+    return p.clone().add(new THREE.Vector3(0, -0.1, 0.3));
+  });
+  return { group, engines, flames, glows, billboard: true, dispose: () => disposables.forEach((d) => d.dispose()) };
+}
+
+function artEnemyCard(spec: import('@sfe/shared').ArtAssetSpec, texture: THREE.Texture): EnemyModel {
+  const group = new THREE.Group();
+  const geo = cardGeometry(spec, texture);
+  const mat = cardMaterial(texture);
+  const card = new THREE.Mesh(geo, mat);
+  card.renderOrder = 4;
+  group.add(card);
+  return {
+    group, flashMats: [], baseEmissive: [], spinners: [], pulse: [],
+    flash: flashable(mat),
+    dispose: () => { geo.dispose(); mat.dispose(); },
+  };
+}
+
+function artBossCard(phases: THREE.Texture[]): EnemyModel {
+  const spec = artById('shadow-commander-phase-1')!;
+  const group = new THREE.Group();
+  const geo = cardGeometry(spec, phases[0]);
+  const mat = cardMaterial(phases[0]);
+  const card = new THREE.Mesh(geo, mat);
+  card.renderOrder = 4;
+  group.add(card);
+  let current = 1;
+  let t = 0;
+  return {
+    group, flashMats: [], baseEmissive: [], spinners: [], pulse: [],
+    flash: flashable(mat),
+    setPhase: (phase) => {
+      if (phase === current || !phases[phase - 1]) return;
+      current = phase;
+      mat.map = phases[phase - 1];
+      mat.needsUpdate = true;
+    },
+    update: (dt) => { t += dt; card.position.y = Math.sin(t * 1.8) * 0.12; },
+    dispose: () => { geo.dispose(); mat.dispose(); },
   };
 }

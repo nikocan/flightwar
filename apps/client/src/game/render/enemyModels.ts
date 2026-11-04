@@ -15,6 +15,10 @@ export interface EnemyModel {
   pulse: THREE.Object3D[];
   /** Advances GLB animation clips (if any). */
   update?: (dt: number) => void;
+  /** Boss phase art switch (1..3), for sprite bosses. */
+  setPhase?: (phase: number) => void;
+  /** Hit flash for models without emissive materials (sprite cards). */
+  flash?: (amount: number) => void;
   dispose: () => void;
 }
 
@@ -233,6 +237,7 @@ const FLASH = new THREE.Color('#ffe6f2');
 
 /** Applies (or clears) the white hit flash. */
 export function setHitFlash(m: EnemyModel, amount: number): void {
+  m.flash?.(amount);
   for (const b of m.baseEmissive) {
     if (amount > 0) {
       // Subtle, short flash: keeps the cartoon colours readable under constant fire.
