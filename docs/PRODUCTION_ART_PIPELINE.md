@@ -34,3 +34,21 @@ Claude Code owns engine integration, optimization and verification. Art assets m
 
 ## Release discipline
 Do not merge until screenshots and automated checks pass. Keep all development isolated in a feature branch; deploy preview first, public production only after approval.
+
+## Delivery → approval workflow (implemented)
+1. Export each asset as an independent transparent PNG/WebP that matches the approved Sky Force Evolution sheet,
+   using the exact path and size in `docs/ART_DELIVERY_SPEC.md` (124 assets, generated from
+   `packages/shared/src/art/manifest.ts`). Start with `falcon-x1` and `shadow-commander-phase-1..3`.
+2. Copy files to `apps/client/public/game-assets/production/...` and run `npm run art:check`
+   (size, aspect ratio, alpha channel, flipbook grid).
+3. `npm run art:approve -- <id> [...]` adds valid assets to `APPROVED_ART_IDS` (refuses missing/invalid files;
+   `--revoke` removes). Update the expectation in `packages/shared/test/artManifest.test.ts`.
+4. Verify in game with real screenshots (iPhone landscape) against the sheet **before** committing.
+   Approved art then replaces the interim visuals automatically:
+   - aircraft → camera-facing card, straight flight, 3 engine flames at the manifest `engines` anchors
+     (replaces `public/game-assets/aircraft/falcon-x1.svg` and the procedural models)
+   - bosses → `shadow-commander-phase-1` replaces `bosses/shadow-commander.svg`; phases 2/3 swap on boss phase
+     change and fall back to the closest earlier phase if missing
+   - enemies → replace the interim scout SVG / procedural models
+5. CI runs `npm run art:check -- --strict`: an approved asset whose file is missing or invalid fails the build.
+The interim SVGs stay in the repository until their production replacements are approved.

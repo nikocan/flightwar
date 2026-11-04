@@ -8,6 +8,7 @@ import { getGltf, getLods } from './AssetLoader';
 import { anchorToLocal, artTexture, cardGeometry, cardMaterial, readyArtFor } from './artSprites';
 import { artById } from '@sfe/shared';
 import { createFalconSpriteModel } from './falconSprite';
+import { addCardExhaust } from './cardExhaust';
 import { createShadowCommanderSprite } from './shadowCommanderSprite';
 import { createScoutDroneSprite } from './scoutDroneSprite';
 
@@ -103,8 +104,13 @@ export function createAircraftModel(def: AircraftDef, opts: { glow?: boolean } =
 /** Enemy / boss: GLB if available (materials cloned per instance for hit flashes), else procedural. */
 export function createEnemyModel(def: EnemyDef): EnemyModel {
   if (def.behavior === 'boss') {
-    const phases = [1, 2, 3].map((n) => artTexture(`shadow-commander-phase-${n}`));
-    if (phases.every(Boolean)) return artBossCard(phases as THREE.Texture[]);
+    // Production boss art replaces the interim SVG as soon as phase 1 is approved; a missing
+    // later phase falls back to the closest earlier phase.
+    const raw = [1, 2, 3].map((n) => artTexture(`shadow-commander-phase-${n}`));
+    if (raw[0]) {
+      const phases = raw.map((t, i) => t ?? raw.slice(0, i).reverse().find(Boolean) ?? raw[0]) as THREE.Texture[];
+      return artBossCard(phases);
+    }
   } else {
     const art = readyArtFor('enemy', def.id);
     if (art) return artEnemyCard(art.spec, art.texture);
@@ -164,18 +170,16 @@ function artAircraftCard(spec: import('@sfe/shared').ArtAssetSpec, texture: THRE
   const card = new THREE.Mesh(geo, mat);
   card.renderOrder = 5;
   group.add(card);
-  const flames: THREE.Mesh[] = [];
-  const glows: THREE.Sprite[] = [];
-  const disposables: { dispose: () => void }[] = [geo, mat];
-  const engines = (spec.world?.engines ?? []).map((a) => {
-    const p = anchorToLocal(spec, geo, a);
-    const n = new THREE.Object3D();
-    n.position.copy(p);
-    group.add(n);
-    addExhaust(n, engineColor, 0.16, flames, glows, disposables);
-    return p.clone().add(new THREE.Vector3(0, -0.1, 0.3));
-  });
-  return { group, engines, flames, glows, billboard: true, dispose: () => disposables.forEach((d) => d.dispose()) };
+  const points = (spec.world?.engines ?? []).map((a) => anchorToLocal(spec, geo, a));
+  const exhaust = addCardExhaust(group, points, spec.world?.tilt ?? 0, engineColor);
+  return {
+    group,
+    engines: exhaust.engines,
+    flames: exhaust.flames,
+    glows: exhaust.glows,
+    billboard: true,
+    dispose: () => { geo.dispose(); mat.dispose(); exhaust.dispose(); },
+  };
 }
 
 function artEnemyCard(spec: import('@sfe/shared').ArtAssetSpec, texture: THREE.Texture): EnemyModel {
@@ -208,8 +212,10 @@ function artBossCard(phases: THREE.Texture[]): EnemyModel {
     setPhase: (phase) => {
       if (phase === current || !phases[phase - 1]) return;
       current = phase;
-      mat.map = phases[phase - 1];
-      mat.needsUpdate = true;
+      if (mat.map !== phases[phase - 1]) {
+        mat.map = phases[phase - 1];
+        mat.needsUpdate = true;
+      }
     },
     update: (dt) => { t += dt; card.position.y = Math.sin(t * 1.8) * 0.12; },
     dispose: () => { geo.dispose(); mat.dispose(); },

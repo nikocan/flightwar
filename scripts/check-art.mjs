@@ -1,66 +1,14 @@
 #!/usr/bin/env node
 // Validates the production art package against packages/shared/src/art/manifest.ts.
-//   npm run art:check            → report (exit 0)
-//   npm run art:check -- --strict → exit 1 if any delivered file is invalid
+//   npm run art:check             → report (exit 0)
+//   npm run art:check -- --strict → exit 1 if any delivered file is invalid or an APPROVED asset is missing/invalid
 //   npm run art:check -- --doc    → regenerate docs/ART_DELIVERY_SPEC.md
-// Reads PNG/WebP headers directly (no dependencies).
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { check, loadManifest, root } from './art-lib.mjs';
 
-const root = resolve(import.meta.dirname, '..');
-const { ART_MANIFEST, ART_CATEGORY_LABELS, POWERUPS_WITHOUT_SHEET_ICON } = await import(
-  resolve(root, 'packages/shared/src/art/manifest.ts')
-);
-const publicDir = resolve(root, 'apps/client/public');
+const { ART_MANIFEST, ART_CATEGORY_LABELS, POWERUPS_WITHOUT_SHEET_ICON } = await loadManifest();
 const args = new Set(process.argv.slice(2));
-
-/** Returns { format, width, height, alpha } or null. */
-function readImageInfo(buf) {
-  // PNG
-  if (buf.length > 26 && buf.readUInt32BE(0) === 0x89504e47) {
-    const width = buf.readUInt32BE(16);
-    const height = buf.readUInt32BE(20);
-    const colorType = buf[25];
-    const hasTrns = buf.includes(Buffer.from('tRNS'));
-    return { format: 'png', width, height, alpha: colorType === 6 || colorType === 4 || (colorType === 3 && hasTrns) };
-  }
-  // WebP
-  if (buf.length > 30 && buf.toString('ascii', 0, 4) === 'RIFF' && buf.toString('ascii', 8, 12) === 'WEBP') {
-    const chunk = buf.toString('ascii', 12, 16);
-    if (chunk === 'VP8X') {
-      const alpha = (buf[20] & 0x10) !== 0;
-      const width = 1 + buf.readUIntLE(24, 3);
-      const height = 1 + buf.readUIntLE(27, 3);
-      return { format: 'webp', width, height, alpha };
-    }
-    if (chunk === 'VP8L') {
-      const b = buf.readUInt32LE(21);
-      return { format: 'webp', width: 1 + (b & 0x3fff), height: 1 + ((b >> 14) & 0x3fff), alpha: ((b >> 28) & 1) === 1 };
-    }
-    if (chunk === 'VP8 ') {
-      return { format: 'webp', width: buf.readUInt16LE(26) & 0x3fff, height: buf.readUInt16LE(28) & 0x3fff, alpha: false };
-    }
-  }
-  return null;
-}
-
-function check(a) {
-  const file = resolve(publicDir, '.' + a.path);
-  if (!existsSync(file)) return { state: 'missing' };
-  const info = readImageInfo(readFileSync(file));
-  if (!info) return { state: 'invalid', problems: ['not a readable PNG/WebP file'] };
-  const problems = [];
-  const specAspect = a.sourceWidth / a.sourceHeight;
-  const aspect = info.width / info.height;
-  if (Math.abs(aspect - specAspect) / specAspect > 0.01) problems.push(`aspect ${info.width}×${info.height} ≠ ${a.sourceWidth}×${a.sourceHeight}`);
-  if (info.width < a.sourceWidth * 0.5) problems.push(`too small: ${info.width}px wide (min ${a.sourceWidth / 2}px)`);
-  if (a.alpha && !info.alpha) problems.push('no alpha channel (background must be transparent)');
-  if (a.frames) {
-    const rows = Math.ceil(a.frames.count / a.frames.columns);
-    if (info.width % a.frames.columns || info.height % rows) problems.push(`frame grid ${a.frames.columns}×${rows} does not divide ${info.width}×${info.height}`);
-  }
-  return { state: problems.length ? 'invalid' : 'valid', info, problems };
-}
 
 const results = ART_MANIFEST.map((a) => ({ a, r: check(a) }));
 
@@ -107,4 +55,7 @@ for (const [cat, label] of Object.entries(ART_CATEGORY_LABELS)) {
 }
 console.log(`\n  valid: ${count('valid')}   invalid: ${count('invalid')}   missing: ${count('missing')}`);
 for (const { a, r } of results.filter((x) => x.r.state === 'invalid')) console.log(`  ✗ ${a.id}: ${r.problems.join('; ')}`);
-if (args.has('--strict') && count('invalid') > 0) process.exit(1);
+const brokenApprovals = results.filter((x) => x.a.status === 'approved' && x.r.state !== 'valid');
+for (const { a, r } of brokenApprovals) console.log(`  ✗ APPROVED but ${r.state}: ${a.id}`);
+console.log(`  approved: ${results.filter((x) => x.a.status === 'approved').length}`);
+if (args.has('--strict') && (count('invalid') > 0 || brokenApprovals.length > 0)) process.exit(1);

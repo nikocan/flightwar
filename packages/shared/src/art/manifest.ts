@@ -54,6 +54,13 @@ export interface ArtAssetSpec {
   notes?: string;
 }
 
+/**
+ * Asset ids approved for use in game. Add an id here ONLY after the delivered file passed
+ * `npm run art:check` AND was visually verified in game against the approved sheet.
+ * Managed by `npm run art:approve -- <id>`; keep it on one line.
+ */
+export const APPROVED_ART_IDS: readonly string[] = [];
+
 const P = '/game-assets/production';
 
 // ───────────────────────────── Player aircraft (8) ─────────────────────────────
@@ -77,7 +84,7 @@ const aircraft: ArtAssetSpec[] = AIRCRAFT_ART.flatMap(([id, gameplayId]) => [
     sourceHeight: 1024,
     alpha: true,
     gameplayId,
-    world: { width: 4.2, tilt: -0.82, engines: [[0.4, 0.93], [0.5, 0.95], [0.6, 0.93]], muzzles: [[0.5, 0.04]] },
+    world: { width: 4.4, tilt: -0.35, engines: [[0.41, 0.94], [0.5, 0.94], [0.59, 0.94]], muzzles: [[0.5, 0.04]] },
     reference: 'Sheet: "Üst Görünüm" (top view), nose pointing up',
     status: 'awaiting-art' as const,
   },
@@ -263,7 +270,7 @@ const uiAssets: ArtAssetSpec[] = [
 
 export const ART_MANIFEST: readonly ArtAssetSpec[] = [
   ...aircraft, ...enemies, ...boss, ...projectiles, ...effects, ...pickups, ...environments, ...uiAssets,
-];
+].map((a) => ({ ...a, status: APPROVED_ART_IDS.includes(a.id) ? ('approved' as const) : ('awaiting-art' as const) }));
 
 export const artById = (id: string): ArtAssetSpec | undefined => ART_MANIFEST.find((a) => a.id === id);
 
