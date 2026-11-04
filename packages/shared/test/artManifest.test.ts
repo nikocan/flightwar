@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ART_CHAPTER_THEMES, ART_MANIFEST, PICKUP_ART_MAP, POWERUPS_WITHOUT_SHEET_ICON, artForGameplay } from '../src/art/manifest';
+import { APPROVED_ART_IDS, ART_CHAPTER_THEMES, ART_MANIFEST, PICKUP_ART_MAP, POWERUPS_WITHOUT_SHEET_ICON, artForGameplay } from '../src/art/manifest';
 import { AIRCRAFT_ORDER } from '../src/config/aircraft';
 import { CHAPTERS, MISSIONS } from '../src/config/missions';
 import { POWERUP_IDS } from '../src/config/powerups';
@@ -57,7 +57,14 @@ describe('production art manifest', () => {
     }
   });
 
+  it('approvals only reference real assets and drive the status field', () => {
+    const ids = new Set(ART_MANIFEST.map((a) => a.id));
+    for (const id of APPROVED_ART_IDS) expect(ids.has(id), id).toBe(true);
+    expect(ART_MANIFEST.filter((a) => a.status === 'approved').map((a) => a.id).sort()).toEqual([...APPROVED_ART_IDS].sort());
+  });
+
   it('nothing is approved before the production package has been delivered and verified', () => {
-    expect(ART_MANIFEST.filter((a) => a.status === 'approved')).toEqual([]);
+    // Update this expectation together with APPROVED_ART_IDS when art is approved.
+    expect(APPROVED_ART_IDS).toEqual([]);
   });
 });

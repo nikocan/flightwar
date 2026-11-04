@@ -14,7 +14,8 @@
     "typecheck": "npm run typecheck -w @sfe/shared && npm run typecheck -w @sfe/client",
     "test": "npm run test -w @sfe/shared",
     "test:e2e": "npm run test:e2e -w @sfe/client",
-    "art:check": "node --experimental-strip-types --no-warnings scripts/check-art.mjs"
+    "art:check": "node --experimental-strip-types --no-warnings scripts/check-art.mjs",
+    "art:approve": "node --experimental-strip-types --no-warnings scripts/art-approve.mjs"
   },
   "engines": {
     "node": ">=20"
