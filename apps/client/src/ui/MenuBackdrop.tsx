@@ -61,7 +61,7 @@ function MenuScene() {
 
   useEffect(() => {
     const q = { ...QUALITY_PROFILES[quality], clouds: Math.min(QUALITY_PROFILES[quality].clouds, 45) };
-    const env = new Environment(scene, q, THEMES.menuDusk);
+    const env = new Environment(scene, q, THEMES.waterfallCanyon);
     env.bakeEnvironment(gl, getTexture('hdri.sunset'));
     const hero = createAircraftModel(AIRCRAFT.falconX1);
     hero.group.scale.setScalar(1.15);

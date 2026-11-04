@@ -12,6 +12,23 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.5.0',
+    date: '2026-11-04',
+    phase: 2,
+    title: 'Yeni Arayüz Tasarımı — Telefon İçin Baştan Tasarlandı',
+    highlights: [
+      'Tüm ekranlar grafik sayfasındaki parlak mavi çizgi film tarzına geçti: beyaz kenarlı parlak paneller, altın/yeşil/mavi şeker butonlar.',
+      'Yeni ana menü: üstte profil ve paralar, solda Günlük Ödül, ortada büyük altın OYNA, sağda Uçak Hangarı kartı.',
+      'Yeni alt menü çubuğu: Ana Menü, Uçaklar, Bölümler, Yükseltme, Görevler, Etkinlikler, Ödüller, Sıralama, Çok Oyunculu, Mağaza.',
+      'Yeni Bölüm Haritası: birbirine bağlı görev baloncukları, boss görevi, bölüm seçici; BAŞLA butonu artık hep ekranda.',
+      'Yeni Uçak Hangarı: 8 uçak kartı, yıldızlar, kilitler, özellik çubukları ve uçak seçme.',
+      'Hata düzeltme: Görev sonu ekranında Tekrar Dene / Görevler / Ana Menü butonları telefonda ekranın dışında kalıyordu — artık iki sütunlu düzende hep görünüyor.',
+      'Hata düzeltme: Görevler ekranında Başla butonu telefonda görünmüyordu.',
+      'Okunabilirlik: telefonda en küçük yazı 6,6 pikselden 10 piksele çıktı, dokunma alanları en az 40–44 piksel.',
+      'Bölüm isimleri grafik sayfasıyla aynı yapıldı: Şelale Kanyonu, Yeşil Adalar, Okyanus, Kar Dağları, Volkan, Gün Batımı, Bulut Krallığı, Uzay Üssü, Asteroid Alanı, Galaktik Finale.',
+    ],
+  },
+  {
     version: '0.4.0',
     date: '2026-11-04',
     phase: 2,

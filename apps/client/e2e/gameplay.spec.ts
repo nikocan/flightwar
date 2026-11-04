@@ -9,7 +9,7 @@ test('main menu → mission → fire → pause → victory → rewards', async (
   await expect(page.getByTestId('main-menu')).toBeVisible();
   await expect(page.getByTestId('coins')).toContainText('0');
 
-  await page.getByTestId('mode-single').click();
+  await page.getByTestId('nav-missions').click();
   await expect(page.getByTestId('mission-select')).toBeVisible();
   await page.getByTestId('start-mission').click();
   await expect(page.getByTestId('hud')).toBeVisible({ timeout: 30_000 });
